@@ -3,258 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TripMaster Pro - Gestor de Viajes & App in the Air Hub</title>
-
-  <!-- PWA Settings -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0a192f">
-
-  <!-- Icons & External Libraries -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- Google Identity Services Library -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-
-  <style>
-    :root {
-      --primary: #0084ff;
-      --primary-dark: #0a192f;
-      --card-bg: #112240;
-      --card-border: rgba(255, 255, 255, 0.08);
-      --accent-green: #10b981;
-      --accent-amber: #ffb703;
-      --text-light: #e6f1ff;
-      --text-muted: #94a3b8;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-
-    body {
-      background-color: #050c1a;
-      color: var(--text-light);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
-
-    .phone-container {
-      width: 100%;
-      max-width: 414px;
-      height: 100vh;
-      max-height: 896px;
-      background-color: #0a192f;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-    }
-
-    @media (min-width: 480px) {
-      .phone-container {
-        height: 844px;
-        border-radius: 40px;
-        border: 8px solid #1e293b;
-        margin: 20px 0;
-      }
-    }
-
-    /* App Header */
-    .app-header {
-      background-color: #0f172a;
-      padding: 14px 18px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      z-index: 50;
-      position: relative;
-    }
-
-    .header-title { font-size: 1.15rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 8px; }
-    .header-actions { display: flex; gap: 12px; color: var(--primary); font-size: 1.1rem; align-items: center; position: relative; }
-    .action-icon-btn { background: none; border: none; color: var(--primary); font-size: 1.1rem; cursor: pointer; padding: 4px; }
-    .back-btn { background: none; border: none; color: var(--primary); font-size: 1.1rem; cursor: pointer; }
-
-    /* Dropdown Menus */
-    .dropdown-menu {
-      position: absolute;
-      top: 45px;
-      right: 0;
-      background: #0f172a;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-      width: 230px;
-      display: none;
-      flex-direction: column;
-      z-index: 1000;
-      overflow: hidden;
-    }
-
-    .dropdown-menu.active { display: flex; }
-
-    .dropdown-item {
-      padding: 12px 16px;
-      font-size: 0.85rem;
-      color: var(--text-light);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      background: none;
-      border: none;
-      text-align: left;
-      width: 100%;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .dropdown-item:last-child { border-bottom: none; }
-    .dropdown-item:hover { background-color: #1e293b; }
-    .dropdown-item.danger { color: #ef4444; font-weight: 600; }
-
-    /* Screens */
-    .screen { flex: 1; overflow-y: auto; display: none; padding-bottom: 80px; }
-    .screen.active { display: block; }
-
-    /* Trips List UI & Filter Pills */
-    .search-box { padding: 12px 18px 6px 18px; background-color: #0f172a; }
-    .search-input-wrapper {
-      background-color: #1e293b;
-      border-radius: 10px;
-      padding: 8px 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--text-muted);
-    }
-    .search-input-wrapper input { border: none; background: transparent; outline: none; width: 100%; font-size: 0.9rem; color: #fff; }
-
-    .filter-pills-bar {
-      display: flex;
-      gap: 6px;
-      padding: 8px 18px 12px 18px;
-      background-color: #0f172a;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    .pill-btn {
-      flex: 1;
-      padding: 6px 10px;
-      border-radius: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: #1e293b;
-      color: var(--text-muted);
-      font-size: 0.72rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.2s;
-    }
-    .pill-btn.active {
-      background: var(--primary);
-      color: #fff;
-      border-color: var(--primary);
-    }
-
-    .trips-list { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
-    .trip-card {
-      background-color: var(--card-bg);
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-      display: flex;
-      cursor: pointer;
-      border: 1px solid var(--card-border);
-    }
-    .trip-card-img { width: 100px; height: 100px; object-fit: cover; }
-    .trip-card-info { padding: 12px 16px; display: flex; flex-direction: column; justify-content: center; flex: 1; }
-    .trip-card-title { font-size: 1.05rem; font-weight: 700; color: #ffffff; margin-bottom: 4px; }
-    .trip-card-dates { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; }
-    .trip-card-badge { font-size: 0.75rem; color: var(--primary); display: flex; align-items: center; gap: 4px; }
-
-    /* Detailed Itinerary UI */
-    .detail-header-banner { background-color: #0f172a; padding: 16px; border-bottom: 1px solid var(--card-border); }
-    .detail-trip-title { font-size: 1.3rem; font-weight: 800; color: #fff; }
-    .detail-trip-dates { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; }
-
-    .timeline-container { padding: 16px; }
-    .day-header { font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; margin: 16px 0 12px 0; }
-    .timeline-item { display: flex; gap: 12px; margin-bottom: 16px; position: relative; cursor: pointer; transition: transform 0.1s ease; }
-    .timeline-item:active { transform: scale(0.98); }
-    .time-column { width: 65px; text-align: right; font-size: 0.8rem; font-weight: 700; color: #cbd5e1; }
-    .time-zone { font-size: 0.65rem; color: var(--text-muted); font-weight: normal; display: block; }
-    .node-column { display: flex; flex-direction: column; align-items: center; position: relative; }
-    .node-icon { width: 32px; height: 32px; border-radius: 50%; background-color: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; z-index: 2; }
-    .node-icon.flight { background-color: #10b981; }
-    .node-icon.hotel { background-color: #0284c7; }
-    .node-icon.car { background-color: #f59e0b; }
-    .node-icon.food { background-color: #ec4899; }
-    .node-icon.activity { background-color: #8b5cf6; }
-    .timeline-line { position: absolute; top: 32px; bottom: -20px; width: 2px; background-color: #334155; z-index: 1; }
-    .timeline-item:last-child .timeline-line { display: none; }
-    .content-card { flex: 1; background-color: var(--card-bg); border-radius: 12px; padding: 12px 14px; border: 1px solid var(--card-border); position: relative; }
-    .card-title-row { display: flex; justify-content: space-between; align-items: flex-start; }
-    .card-title { font-size: 0.95rem; font-weight: 700; color: #fff; }
-    .card-status { font-size: 0.7rem; color: #10b981; font-weight: 600; background-color: rgba(16, 185, 129, 0.15); padding: 2px 6px; border-radius: 4px; }
-    .card-subdetail { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
-    .card-meta { margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(255, 255, 255, 0.1); font-size: 0.75rem; color: var(--text-muted); }
-    .layover-box { background-color: #0f172a; border: 1px dashed #334155; border-radius: 8px; padding: 8px 12px; margin: 10px 0; font-size: 0.75rem; color: #94a3b8; display: flex; align-items: center; gap: 6px; }
-
-    /* FLIGHT HUB */
-    .flight-nav-tabs {
-      display: flex;
-      background: #0f172a;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 0 4px;
-      overflow-x: auto;
-    }
-    .flight-tab-btn {
-      flex: 1;
-      min-width: 70px;
-      padding: 10px 4px;
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 0.7rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      border-bottom: 2px solid transparent;
-      transition: all 0.2s;
-    }
-    .flight-tab-btn.active {
-      color: var(--primary);
-      border-bottom-color: var(--primary);
-      background: #1e293b;
-    }
-    .flight-subview { display: none; padding: 14px; background: #0a192f; min-height: calc(100% - 110px); }
-    .flight-subview.active { display: block; }
-
-    #leafletMap { height: 260px; width: 100%; border-radius: 12px; overflow: hidden; background: #09121d; border: 1px solid var(--card-border); }
-    .metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
-    .dark-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; }
-    .dark-card-title { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
-    .dark-card-value { font-size: 1.2rem; font-weight: 800; margin: 4px 0; color: var(--primary); }
-    .dark-card-sub { font-size: 0.68rem; color: #64748b; }
-
-    .top-list { list-style: none; margin-top: 6px; }
-    .top-list-item { display: flex; justify-content: space-between; font-size: 0.78rem; padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
-    .top-list-item:last-child { border-bottom: none; }
-    .top-list-badge { background: rgba(0, 132, 255, 0.15); color: var(--primary); font-weight: 700; border-radius: 4px; padding: 1px 6px; font-size: 0.7rem; }
-
-    .air-flight-card {<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>TripMaster Pro</title>
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#0f172a">
@@ -285,35 +33,43 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background-color: #030712; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    body { background-color: #030712; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
 
+    /* Contenedor Principal */
     .phone-container {
       width: 100%; max-width: 430px; height: 100vh; max-height: 932px; background-color: var(--bg-main);
       position: relative; overflow: hidden; display: flex; flex-direction: column; border-radius: 0px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     }
     @media (min-width: 440px) { .phone-container { height: 90vh; border-radius: 36px; border: 8px solid #1e293b; } }
 
-    .screen { display: none; flex-direction: column; width: 100%; height: 100%; overflow-y: auto; padding-bottom: 80px; }
-    .screen.active { display: flex; }
+    /* Pantallas y Control Estricto de Modales */
+    .screen { display: none !important; flex-direction: column; width: 100%; height: 100%; overflow-y: auto; padding-bottom: 80px; }
+    .screen.active { display: flex !important; }
 
+    .modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.75); z-index: 2000; display: none !important; justify-content: flex-end; flex-direction: column; backdrop-filter: blur(4px); }
+    .modal-overlay.active { display: flex !important; }
+
+    /* Encabezado */
     .app-header {
       padding: 16px; display: flex; justify-content: space-between; align-items: center;
-      background-color: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--card-border);
+      background-color: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--card-border);
     }
     .header-title { font-size: 1.2rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; }
     .header-actions { display: flex; gap: 10px; }
     .action-icon-btn { background: none; border: none; color: #fff; font-size: 1.1rem; cursor: pointer; padding: 6px; border-radius: 8px; }
     .back-btn { background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; }
 
+    /* Menús Desplegables */
     .dropdown-menu {
       position: absolute; top: 50px; right: 16px; background: #1e293b; border: 1px solid var(--card-border);
-      border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: none; flex-direction: column; z-index: 100; min-width: 220px; overflow: hidden;
+      border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: none !important; flex-direction: column; z-index: 100; min-width: 220px; overflow: hidden;
     }
-    .dropdown-menu.active { display: flex; }
+    .dropdown-menu.active { display: flex !important; }
     .dropdown-item { padding: 12px 16px; font-size: 0.85rem; color: #fff; background: none; border: none; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 10px; width: 100%; }
     .dropdown-item:hover { background: rgba(255,255,255,0.05); }
     .dropdown-item.danger { color: #ef4444; }
 
+    /* Búsqueda y Filtros */
     .search-box { padding: 10px 16px 0 16px; }
     .search-input-wrapper { position: relative; width: 100%; }
     .search-input-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem; }
@@ -323,6 +79,7 @@
     .pill-btn { background: #1e293b; border: 1px solid var(--card-border); color: var(--text-muted); padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
     .pill-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 
+    /* Tarjetas */
     .trips-list { padding: 0 16px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
     .trip-card {
       background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden;
@@ -335,6 +92,7 @@
     .trip-card-dates { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; }
     .trip-card-badge { font-size: 0.65rem; padding: 2px 8px; border-radius: 6px; background: rgba(0, 132, 255, 0.15); color: var(--primary); font-weight: 600; width: fit-content; }
 
+    /* Línea de Tiempo */
     .detail-header-banner { padding: 16px; background: linear-gradient(180deg, rgba(15, 23, 42, 0.9) 0%, rgba(11, 19, 41, 0) 100%); }
     .detail-trip-title { font-size: 1.3rem; font-weight: 800; color: #fff; }
     .detail-trip-dates { font-size: 0.8rem; color: var(--text-muted); }
@@ -365,6 +123,7 @@
       border-radius: 8px; padding: 6px 10px; font-size: 0.72rem; color: var(--accent-amber); font-weight: 600; display: flex; align-items: center; gap: 6px;
     }
 
+    /* Vuelos y Estadísticas */
     .flight-nav-tabs { display: flex; justify-content: space-between; background: #1e293b; padding: 4px; margin: 0 16px 12px 16px; border-radius: 12px; border: 1px solid var(--card-border); }
     .flight-tab-btn { flex: 1; background: none; border: none; color: var(--text-muted); padding: 8px 4px; border-radius: 8px; font-size: 0.7rem; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
     .flight-tab-btn.active { background: var(--primary); color: #fff; }
@@ -393,6 +152,7 @@
     
     .trip-duration-footer { margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(255, 255, 255, 0.1); font-size: 0.75rem; color: var(--accent-amber); font-weight: 700; display: flex; align-items: center; gap: 6px; }
 
+    /* Navegación y FAB */
     .fab {
       position: absolute; bottom: 70px; right: 20px; width: 50px; height: 50px; border-radius: 50%;
       background-color: var(--primary); color: white; display: flex; align-items: center; justify-content: center;
@@ -407,8 +167,7 @@
     .nav-item.active { color: var(--primary); font-weight: 600; }
     .nav-badge { position: absolute; top: -2px; right: 22px; background-color: #ef4444; color: white; border-radius: 50%; width: 14px; height: 14px; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
-    .modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.7); z-index: 2000; display: none; justify-content: flex-end; flex-direction: column; backdrop-filter: blur(4px); }
-    .modal-overlay.active { display: flex; }
+    /* Modales */
     .action-sheet { background-color: #0f172a; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; max-height: 88%; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.1); }
     .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
     .sheet-title { font-size: 1.1rem; font-weight: 700; color: #fff; }
@@ -439,7 +198,7 @@
     <!-- SCREEN 1: TRIPS LIST -->
     <div id="screen-trips-list" class="screen active">
       <div class="app-header">
-        <div class="header-title"><i class="fa-solid fa-briefcase text-sky-400"></i> Viajes</div>
+        <div class="header-title"><i class="fa-solid fa-briefcase" style="color:#38bdf8;"></i> Viajes</div>
         <div class="header-actions">
           <button class="action-icon-btn" onclick="toggleDropdown(event, 'dropdown-trips-list')">
             <i class="fa-solid fa-ellipsis-vertical"></i>
@@ -563,29 +322,140 @@
         <div id="air-flights-list"></div>
       </div>
 
+      <!-- SECCIÓN MULTI-ESTADÍSTICAS -->
       <div class="flight-subview" id="subview-stats">
-        <div class="metrics-grid" style="grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:12px;">
-          <div class="dark-card">
-            <div class="dark-card-title">Millas Voladas</div>
-            <div class="dark-card-value" id="stat-miles">0</div>
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label style="color:#38bdf8; font-weight:700;"><i class="fa-solid fa-chart-line"></i> Seleccionar Categoría de Estadísticas:</label>
+          <select id="stats-category-select" onchange="renderSelectedCategoryStats()" style="background:#1e293b; border:1px solid #0084ff; font-weight:700; color:#fff; padding:10px; border-radius:10px;">
+            <option value="trips">📊 Estadísticas de Viajes</option>
+            <option value="flights">✈ Estadísticas de Vuelos</option>
+            <option value="hotels">🏨 Estadísticas de Hoteles</option>
+          </select>
+        </div>
+
+        <!-- PANEL 1: ESTADÍSTICAS DE VIAJES -->
+        <div id="stats-panel-trips">
+          <div class="metrics-grid">
+            <div class="dark-card">
+              <div class="dark-card-title"><i class="fa-solid fa-calendar-days"></i> Días Totales</div>
+              <div class="dark-card-value" id="trip-stat-days">0</div>
+              <div class="dark-card-sub">Días acumulados en ruta</div>
+            </div>
+            <div class="dark-card">
+              <div class="dark-card-title"><i class="fa-solid fa-wallet"></i> Gastos de Alojamientos</div>
+              <div class="dark-card-value" id="trip-stat-expenses" style="color:#10b981;">$0</div>
+              <div class="dark-card-sub">Alojamientos registrados</div>
+            </div>
           </div>
-          <div class="dark-card">
-            <div class="dark-card-title">Horas de Vuelo</div>
-            <div class="dark-card-value" id="stat-hours" style="color:#10b981;">0 h</div>
+          <div class="metrics-grid">
+            <div class="dark-card">
+              <div class="dark-card-title"><i class="fa-solid fa-suitcase"></i> Total de Viajes</div>
+              <div class="dark-card-value" id="trip-stat-count">0</div>
+              <div class="dark-card-sub">Itinerarios creados</div>
+            </div>
+            <div class="dark-card">
+              <div class="dark-card-title"><i class="fa-solid fa-stopwatch"></i> Promedio por Viaje</div>
+              <div class="dark-card-value" id="trip-stat-avg-days" style="color:#ffb703;">0 días</div>
+              <div class="dark-card-sub">Duración promedio</div>
+            </div>
+          </div>
+          <div class="dark-card" style="margin-top:10px;">
+            <div class="dark-card-title"><i class="fa-solid fa-earth-americas"></i> Top 10 Destinos / Países</div>
+            <ul class="top-list" id="trip-top-countries">
+              <li class="top-list-item" style="color:#94a3b8;">Sin datos registrados</li>
+            </ul>
           </div>
         </div>
-        <div class="dark-card" style="margin-bottom:10px;">
-          <div class="dark-card-title" style="margin-bottom:6px;">Aerolíneas Favoritas</div>
-          <div style="height: 140px; position:relative;">
-            <canvas id="airlinesChart"></canvas>
+
+        <!-- PANEL 2: ESTADÍSTICAS DE VUELOS AVANZADAS -->
+        <div id="stats-panel-flights" style="display:none;">
+          <div class="metrics-grid">
+            <div class="dark-card">
+              <div class="dark-card-title"><i class="fa-solid fa-money-bill-wave"></i> Total Gastado</div>
+              <div class="dark-card-value" id="flight-stat-total-cost" style="color:#10b981;">$0</div>
+              <div class="dark-card-sub">Inversión en boletos de avión</div>
+            </div>
+            <div class="dark-card">
+              <div class="dark-card-title"><i class="fa-solid fa-receipt"></i> Tarifa vs Impuestos</div>
+              <div class="dark-card-value" id="flight-stat-fare-taxes" style="font-size:0.95rem; color:#38bdf8;">$0 / $0</div>
+              <div class="dark-card-sub">Tarifa pura / Impuestos pagados</div>
+            </div>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="dark-card">
+              <div class="dark-card-title"><i class="fa-solid fa-route"></i> Millas Voladas</div>
+              <div class="dark-card-value" id="stat-miles">0</div>
+              <div class="dark-card-sub">Distancia acumulada</div>
+            </div>
+            <div class="dark-card">
+              <div class="dark-card-title"><i class="fa-solid fa-clock"></i> Horas de Vuelo</div>
+              <div class="dark-card-value" id="stat-hours" style="color:#ffb703;">0 h</div>
+              <div class="dark-card-sub">Tiempo total en el aire</div>
+            </div>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="dark-card">
+              <div class="dark-card-title"><i class="fa-solid fa-calculator"></i> Promedio / Vuelo</div>
+              <div class="dark-card-value" id="flight-stat-avg-cost" style="color:#a855f7;">$0</div>
+              <div class="dark-card-sub">Costo medio por tramo</div>
+            </div>
+            <div class="dark-card">
+              <div class="dark-card-title"><i class="fa-solid fa-plane-up"></i> Costo por Milla</div>
+              <div class="dark-card-value" id="flight-stat-cost-per-mile" style="color:#0084ff;">$0.00</div>
+              <div class="dark-card-sub">Eficiencia por distancia</div>
+            </div>
+          </div>
+
+          <div class="dark-card" style="margin-bottom:10px;">
+            <div class="dark-card-title" style="margin-bottom:6px;"><i class="fa-solid fa-plane"></i> Aerolíneas Favoritas</div>
+            <div style="height: 140px; position:relative;">
+              <canvas id="airlinesChart"></canvas>
+            </div>
+          </div>
+
+          <div class="dark-card">
+            <div class="dark-card-title"><i class="fa-solid fa-trophy"></i> Top 10 Aerolíneas por Gasto</div>
+            <ul class="top-list" id="flight-top-airlines-spending">
+              <li class="top-list-item" style="color:#94a3b8;">Sin datos registrados</li>
+            </ul>
           </div>
         </div>
+
+        <!-- PANEL 3: ESTADÍSTICAS DE HOTELES -->
+        <div id="stats-panel-hotels" style="display:none;">
+          <div class="metrics-grid">
+            <div class="dark-card">
+              <div class="dark-card-title"><i class="fa-solid fa-moon"></i> Noches Hospedadas</div>
+              <div class="dark-card-value" id="hotel-stat-nights">0</div>
+              <div class="dark-card-sub">Noches acumuladas</div>
+            </div>
+            <div class="dark-card">
+              <div class="dark-card-title"><i class="fa-solid fa-dollar-sign"></i> Costo Total</div>
+              <div class="dark-card-value" id="hotel-stat-cost" style="color:#10b981;">$0</div>
+              <div class="dark-card-sub">Gasto en alojamientos</div>
+            </div>
+          </div>
+          <div class="dark-card" style="margin-bottom:10px;">
+            <div class="dark-card-title"><i class="fa-solid fa-calculator"></i> Promedio por Noche</div>
+            <div class="dark-card-value" id="hotel-stat-avg-night" style="color:#38bdf8;">$0</div>
+            <div class="dark-card-sub">Costo medio diario de estadía</div>
+          </div>
+          <div class="dark-card">
+            <div class="dark-card-title"><i class="fa-solid fa-hotel"></i> Top 10 Cadenas & Hoteles</div>
+            <ul class="top-list" id="hotel-top-brands">
+              <li class="top-list-item" style="color:#94a3b8;">Sin hoteles registrados</li>
+            </ul>
+          </div>
+        </div>
+
       </div>
 
-      <!-- SECCIÓN GUÍA DE AEROPUERTOS EN TIEMPO REAL VIA WIKIDATA -->
+      <!-- SECCIÓN GUÍA DE AEROPUERTOS -->
       <div class="flight-subview" id="subview-aeropuertos">
         <div style="display:flex; gap:6px; margin-bottom:12px;">
-          <input type="text" id="airport-search-input" placeholder="Escribe cualquier IATA (ej: EZE, ADL, NRT, BOG, LHR)..." onkeypress="if(event.key==='Enter') searchAirportGuide()" style="flex:1; background:#1e293b; border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:8px 10px; color:#fff; font-size:0.8rem;">
+          <input type="text" id="airport-search-input" placeholder="Escribe cualquier IATA (ej: EZE, ADL, MIA, BOG)..." onkeypress="if(event.key==='Enter') searchAirportGuide()" style="flex:1; background:#1e293b; border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:8px 10px; color:#fff; font-size:0.8rem;">
           <button onclick="searchAirportGuide()" style="background:#0084ff; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:600; font-size:0.8rem; cursor:pointer;">🔍 Buscar</button>
         </div>
         <div id="airports-guide-container"></div>
@@ -614,7 +484,7 @@
     <!-- SCREEN 4: ACCOUNT -->
     <div id="screen-account" class="screen">
       <div class="app-header">
-        <div class="header-title"><i class="fa-solid fa-user-gear text-sky-400"></i> Cuenta & Respaldos</div>
+        <div class="header-title"><i class="fa-solid fa-user-gear" style="color:#38bdf8;"></i> Cuenta & Respaldos</div>
       </div>
 
       <div style="padding: 16px;">
@@ -724,14 +594,69 @@
         </div>
         <div class="options-grid">
           <button class="option-btn" onclick="openFlightForm()"><i class="fa-solid fa-plane" style="color:#0084ff; font-size: 1.5rem;"></i><span>Agregar Vuelo</span></button>
-          <button class="option-btn" onclick="openGenericForm('hotel', 'Agregar Hotel')"><i class="fa-solid fa-hotel" style="color:#0084ff; font-size: 1.5rem;"></i><span>Hotel</span></button>
-          <button class="option-btn" onclick="openGenericForm('car', 'Alquiler de Auto')"><i class="fa-solid fa-car" style="color:#0084ff; font-size: 1.5rem;"></i><span>Auto</span></button>
-          <button class="option-btn" onclick="openGenericForm('restaurant', 'Reserva Restaurante')"><i class="fa-solid fa-utensils" style="color:#0084ff; font-size: 1.5rem;"></i><span>Restaurante</span></button>
-          <button class="option-btn" onclick="openGenericForm('activity', 'Agregar Actividad')"><i class="fa-solid fa-calendar-check" style="color:#0084ff; font-size: 1.5rem;"></i><span>Actividad / Reunión</span></button>
+          <button class="option-btn" onclick="openHotelForm()"><i class="fa-solid fa-hotel" style="color:#8b5cf6; font-size: 1.5rem;"></i><span>Hotel</span></button>
+          <button class="option-btn" onclick="openGenericForm('car', 'Alquiler de Auto')"><i class="fa-solid fa-car" style="color:#f59e0b; font-size: 1.5rem;"></i><span>Auto</span></button>
+          <button class="option-btn" onclick="openGenericForm('restaurant', 'Reserva Restaurante')"><i class="fa-solid fa-utensils" style="color:#ec4899; font-size: 1.5rem;"></i><span>Restaurante</span></button>
+          <button class="option-btn" onclick="openGenericForm('activity', 'Agregar Actividad')"><i class="fa-solid fa-calendar-check" style="color:#10b981; font-size: 1.5rem;"></i><span>Actividad / Reunión</span></button>
         </div>
       </div>
     </div>
 
+    <!-- MODAL FORMULARIO DE HOTEL AVANZADO -->
+    <div class="modal-overlay" id="modal-hotel-form">
+      <div class="action-sheet">
+        <div class="sheet-header">
+          <div class="sheet-title" id="hotel-form-modal-title">🏨 Registrar / Editar Hotel</div>
+          <button class="sheet-close" onclick="closeModals()">&times;</button>
+        </div>
+
+        <form onsubmit="saveAdvancedHotel(event)">
+          <input type="hidden" id="edit-hotel-item-id">
+          
+          <div class="form-group">
+            <label>Nombre del Hotel / Alojamiento</label>
+            <input type="text" id="hotel-name" placeholder="Ej. Marriott Executive Suites" required>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+            <div class="form-group">
+              <label>Fecha & Hora Check-in (Entrada)</label>
+              <input type="datetime-local" id="hotel-checkin" required>
+            </div>
+            <div class="form-group">
+              <label>Fecha & Hora Check-out (Salida)</label>
+              <input type="datetime-local" id="hotel-checkout" required>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 2fr 1fr; gap:8px;">
+            <div class="form-group">
+              <label>Costo Total del Alojamiento</label>
+              <input type="number" step="0.01" id="hotel-cost" placeholder="Ej. 450.00">
+            </div>
+            <div class="form-group">
+              <label>Moneda</label>
+              <select id="hotel-currency">
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="MXN">MXN ($)</option>
+                <option value="ARS">ARS ($)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Ubicación / Dirección</label>
+            <input type="text" id="hotel-address" placeholder="Ej. Av. Principal 123, Ciudad">
+          </div>
+
+          <button type="submit" class="btn-submit" id="btn-save-hotel">Guardar Reserva de Hotel</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL FORMULARIO DE VUELO CON TARIFAS E IMPUESTOS -->
     <div class="modal-overlay" id="modal-flight-form">
       <div class="action-sheet">
         <div class="sheet-header">
@@ -771,6 +696,27 @@
             <div class="form-group">
               <label>Fecha y Hora Llegada</label>
               <input type="datetime-local" id="flight-arr-time">
+            </div>
+          </div>
+
+          <!-- SECCIÓN COSTOS: TOTAL, FARE Y MONEDA -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px;">
+            <div class="form-group">
+              <label>Boleto Total</label>
+              <input type="number" step="0.01" id="flight-total-cost" placeholder="350.00">
+            </div>
+            <div class="form-group">
+              <label>Tarifa (Fare)</label>
+              <input type="number" step="0.01" id="flight-fare-cost" placeholder="280.00">
+            </div>
+            <div class="form-group">
+              <label>Moneda</label>
+              <select id="flight-currency">
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="MXN">MXN ($)</option>
+              </select>
             </div>
           </div>
 
@@ -986,7 +932,7 @@
       }
     }
 
-    // CONSULTA SPARQL EN TIEMPO REAL A WIKIDATA SIN REGISTROS ESTÁTICOS LOCALES
+    // CONSULTA EN TIEMPO REAL VÍA WIKIDATA & OSM
     async function fetchAirportFromWikidata(iata) {
       const cleanIata = iata.toUpperCase().trim();
       const sparqlQuery = `
@@ -1021,8 +967,8 @@
               country: b.countryLabel?.value || 'Internacional',
               lat: lat,
               lng: lng,
-              lounges: b.loungeLabel?.value ? `Operado por ${b.loungeLabel.value}` : `Salas VIP y Salones del Terminal ${cleanIata}`,
-              plugs: b.voltage?.value ? `${b.voltage.value}V ${b.plugLabel?.value ? '(' + b.plugLabel.value + ')' : ''}` : `Estándar eléctrico de ${b.countryLabel?.value || 'la región'}`,
+              lounges: b.loungeLabel?.value ? `Operado por ${b.loungeLabel.value}` : `Salas VIP y Salones de la Terminal ${cleanIata}`,
+              plugs: b.voltage?.value ? `${b.voltage.value}V ${b.plugLabel?.value ? '(' + b.plugLabel.value + ')' : ''}` : `Estándar eléctrico local de ${b.countryLabel?.value || 'la región'}`,
               wifi: `Red Wi-Fi oficial del Aeropuerto ${cleanIata}`,
               transport: `Acceso por Taxi, Servicios de Rideshare y Conexiones Urbanas en ${b.countryLabel?.value || cleanIata}`
             };
@@ -1030,7 +976,6 @@
         }
       } catch (e) { console.error("Error consultando Wikidata:", e); }
 
-      // Fallback geográfico OSM
       try {
         const osmRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=airport+${cleanIata}`);
         const osmData = await osmRes.json();
@@ -1042,9 +987,9 @@
             country: countryPart,
             lat: parseFloat(osmData[0].lat),
             lng: parseFloat(osmData[0].lon),
-            lounges: `Salas VIP de ${rawName}`,
+            lounges: `Salas VIP pertenecientes a ${rawName}`,
             plugs: `Estándar eléctrico oficial de ${countryPart}`,
-            wifi: `Wi-Fi en Terminal Central (${cleanIata})`,
+            wifi: `Wi-Fi disponible en Terminal Central (${cleanIata})`,
             transport: `Taxis, Transfers y Rideshare en ${countryPart}`
           };
         }
@@ -1071,7 +1016,7 @@
           if (data.extract) return data.extract.length > 220 ? data.extract.substring(0, 220) + '...' : data.extract;
         }
       } catch (e) {}
-      return "Terminal de transporte aéreo para conexiones nacionales e internacionales.";
+      return "Terminal de transporte aéreo internacional.";
     }
 
     async function generateAirportCardHtml(iata) {
@@ -1095,7 +1040,7 @@
             <div style="background:#0a192f; padding:8px; border-radius:8px; display:flex; align-items:center; gap:8px;">
               <i class="fa-solid fa-temperature-half" style="color:#ffb703; font-size:1rem;"></i>
               <div>
-                <span style="font-size:0.65rem; color:#94a3b8; display:block;">Clima en Vivo</span>
+                <span style="font-size:0.65rem; color:#94a3b8; display:block;">Clima</span>
                 <span style="font-size:0.8rem; font-weight:700; color:#fff;">${weather.tempC}°C</span>
               </div>
             </div>
@@ -1110,29 +1055,29 @@
 
           <div style="background:#0a192f; padding:10px; border-radius:8px; font-size:0.75rem; color:#cbd5e1; border:1px solid rgba(255,255,255,0.05); margin-bottom:8px;">
             <div style="color:#10b981; font-weight:700; font-size:0.68rem; text-transform:uppercase; margin-bottom:3px; display:flex; align-items:center; gap:4px;">
-              <i class="fa-solid fa-couch"></i> Salas VIP Registradas
+              <i class="fa-solid fa-couch"></i> Salas VIP & Ubicación
             </div>
             <div style="color:#fff; font-weight:600;">${ap.lounges}</div>
           </div>
 
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
             <div style="background:#0a192f; padding:8px; border-radius:8px; font-size:0.72rem;">
-              <div style="color:#38bdf8; font-weight:700; font-size:0.65rem; text-transform:uppercase;"><i class="fa-solid fa-wifi"></i> Wi-Fi</div>
+              <div style="color:#38bdf8; font-weight:700; font-size:0.65rem; text-transform:uppercase;"><i class="fa-solid fa-wifi"></i> Wi-Fi Oficial</div>
               <div style="color:#fff; font-weight:600; margin-top:2px;">${ap.wifi}</div>
             </div>
             <div style="background:#0a192f; padding:8px; border-radius:8px; font-size:0.72rem;">
-              <div style="color:#f59e0b; font-weight:700; font-size:0.65rem; text-transform:uppercase;"><i class="fa-solid fa-plug"></i> Enchufe País</div>
+              <div style="color:#f59e0b; font-weight:700; font-size:0.65rem; text-transform:uppercase;"><i class="fa-solid fa-plug"></i> Enchufe Local</div>
               <div style="color:#fff; font-weight:600; margin-top:2px;">${ap.plugs}</div>
             </div>
           </div>
 
           <div style="background:#0a192f; padding:8px; border-radius:8px; font-size:0.72rem; color:#cbd5e1; margin-bottom:8px;">
-            <div style="color:#a855f7; font-weight:700; font-size:0.65rem; text-transform:uppercase; margin-bottom:2px;"><i class="fa-solid fa-taxi"></i> Transporte y Acceso</div>
+            <div style="color:#a855f7; font-weight:700; font-size:0.65rem; text-transform:uppercase; margin-bottom:2px;"><i class="fa-solid fa-taxi"></i> Transporte & Uber</div>
             <div>${ap.transport}</div>
           </div>
 
           <div style="background:#0a192f; padding:8px; border-radius:8px; font-size:0.72rem; color:#cbd5e1; border:1px solid rgba(255,255,255,0.05);">
-            <div style="color:#94a3b8; font-weight:700; font-size:0.65rem; text-transform:uppercase; margin-bottom:2px;">Resumen Wikipedia</div>
+            <div style="color:#94a3b8; font-weight:700; font-size:0.65rem; text-transform:uppercase; margin-bottom:2px;">Wikipedia Resumen</div>
             <p>${wikiSummary}</p>
           </div>
         </div>
@@ -1141,7 +1086,7 @@
 
     async function loadDefaultAirportGuide() {
       const container = document.getElementById('airports-guide-container');
-      container.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8;"><i class="fa-solid fa-spinner fa-spin"></i> Consultando aeropuertos en vivo...</div>`;
+      container.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando aeropuertos en vivo...</div>`;
       let html = '';
       for (let iata of ['SAL', 'EZE', 'MIA']) {
         html += await generateAirportCardHtml(iata);
@@ -1154,12 +1099,12 @@
       if (!input) { loadDefaultAirportGuide(); return; }
 
       const container = document.getElementById('airports-guide-container');
-      container.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8;"><i class="fa-solid fa-spinner fa-spin"></i> Consultando datos globales en vivo para ${input}...</div>`;
+      container.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8;"><i class="fa-solid fa-spinner fa-spin"></i> Consultando ${input}...</div>`;
       const html = await generateAirportCardHtml(input);
       container.innerHTML = html;
     }
 
-    /* RESTO DE MÉTODOS DE LA APLICACIÓN */
+    /* FILTROS Y NAVEGACIÓN */
     function setTripTimeFilter(filterType) {
       currentTripTimeFilter = filterType;
       document.querySelectorAll('#screen-trips-list .pill-btn').forEach(b => b.classList.remove('active'));
@@ -1222,7 +1167,7 @@
       });
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8;">No se encontraron viajes.</div>`;
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8;">No se encontraron viajes en esta categoría.</div>`;
         return;
       }
 
@@ -1255,7 +1200,7 @@
       let currentDayHeader = '';
 
       if (items.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8;">El itinerario está vacío.</div>`;
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8;">El itinerario de este viaje está vacío. Toca + para agregar eventos.</div>`;
         return;
       }
 
@@ -1290,7 +1235,394 @@
             </div>
           </div>
         `;
+
+        if (index < items.length - 1) {
+          const nextItem = items[index + 1];
+          if (item.type === 'flight' && nextItem.type === 'flight') {
+            const currentDest = item.title ? item.title.split('–')[1]?.trim() : '';
+            const nextOrigin = nextItem.title ? nextItem.title.split('–')[0]?.trim() : '';
+
+            if (currentDest && nextOrigin && currentDest === nextOrigin) {
+              let diffMs = 0;
+              if (item.arrTimestamp && nextItem.timestamp) {
+                diffMs = nextItem.timestamp - item.arrTimestamp;
+              } else if (item.timestamp && nextItem.timestamp) {
+                diffMs = nextItem.timestamp - (item.timestamp + (2.5 * 3600 * 1000));
+              }
+
+              const MAX_LAYOVER_MS = 24 * 60 * 60 * 1000;
+              if (diffMs > 0 && diffMs <= MAX_LAYOVER_MS) {
+                const totalMinutes = Math.floor(diffMs / (1000 * 60));
+                const hours = Math.floor(totalMinutes / 60);
+                const minutes = totalMinutes % 60;
+
+                let durationStr = '';
+                if (hours > 0 && minutes > 0) durationStr = `${hours} h y ${minutes} min`;
+                else if (hours > 0) durationStr = `${hours} h`;
+                else durationStr = `${minutes} min`;
+
+                container.innerHTML += `
+                  <div class="layover-box">
+                    <i class="fa-regular fa-clock"></i> Parada de ${durationStr} en ${currentDest}
+                  </div>
+                `;
+              }
+            }
+          }
+        }
       }
+    }
+
+    function openItemDetailsModal(itemId) {
+      activeSelectedItemId = itemId;
+      const trip = trips.find(t => t.id === activeTripId);
+      if (!trip) return;
+      const item = trip.items.find(i => i.id === itemId);
+      if (!item) return;
+
+      document.getElementById('item-detail-title').innerText = item.title;
+
+      let html = `
+        <div style="background:#1e293b; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);">
+          <div style="font-size:0.75rem; color:#10b981; font-weight:700; text-transform:uppercase; margin-bottom:4px;">
+            ${item.type.toUpperCase()} • ${item.status || 'Confirmado'}
+          </div>
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:4px;">${item.title}</div>
+          <div style="font-size:0.85rem; color:#94a3b8; margin-bottom:8px;">${item.subtitle || ''}</div>
+          <div style="font-size:0.8rem; color:#38bdf8; margin-bottom:10px;">📅 ${item.dayLabel} a las ${item.time}</div>
+      `;
+
+      if (item.details && item.details.length > 0) {
+        html += `<div style="border-top:1px dashed rgba(255,255,255,0.1); padding-top:8px; font-size:0.8rem; color:#cbd5e1;">`;
+        item.details.forEach(d => {
+          html += `<div style="margin-bottom:4px;">• ${d}</div>`;
+        });
+        html += `</div>`;
+      }
+
+      html += `</div>`;
+      document.getElementById('item-detail-body').innerHTML = html;
+      document.getElementById('modal-item-details').classList.add('active');
+    }
+
+    function deleteActiveItem() {
+      if (!activeSelectedItemId) return;
+      const trip = trips.find(t => t.id === activeTripId);
+      if (trip) {
+        const item = trip.items.find(i => i.id === activeSelectedItemId);
+        if (item && item.hotelGroupId) {
+          trip.items = trip.items.filter(i => i.hotelGroupId !== item.hotelGroupId);
+        } else {
+          trip.items = trip.items.filter(i => i.id !== activeSelectedItemId);
+        }
+        saveDataToStorage();
+        renderTimeline();
+        closeModals();
+      }
+    }
+
+    function editActiveItem() {
+      if (!activeSelectedItemId) return;
+      const trip = trips.find(t => t.id === activeTripId);
+      if (!trip) return;
+      const item = trip.items.find(i => i.id === activeSelectedItemId);
+      if (!item) return;
+
+      closeModals();
+
+      if (item.type === 'flight') {
+        document.getElementById('flight-form-modal-title').innerText = '✏ Editar Vuelo';
+        document.getElementById('edit-item-id').value = item.id;
+
+        const ports = item.title.split('–');
+        document.getElementById('flight-origin').value = ports[0] ? ports[0].trim() : '';
+        document.getElementById('flight-dest').value = ports[1] ? ports[1].trim() : '';
+
+        const flightMatch = item.subtitle ? item.subtitle.match(/^(.*?)\s*\((.*?)\)$/) : null;
+        if (flightMatch) {
+          document.getElementById('flight-no').value = flightMatch[1];
+          document.getElementById('flight-airline').value = flightMatch[2];
+        } else {
+          document.getElementById('flight-no').value = item.subtitle || '';
+        }
+
+        if (item.timestamp) {
+          const dt = new Date(item.timestamp);
+          const localIso = new Date(dt.getTime() - (dt.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+          document.getElementById('flight-dep-time').value = localIso;
+        }
+
+        if (item.arrTimestamp) {
+          const arrDt = new Date(item.arrTimestamp);
+          const arrLocalIso = new Date(arrDt.getTime() - (arrDt.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+          document.getElementById('flight-arr-time').value = arrLocalIso;
+        }
+
+        document.getElementById('flight-total-cost').value = item.flightTotalCost || '';
+        document.getElementById('flight-fare-cost').value = item.flightFareCost || '';
+        document.getElementById('flight-currency').value = item.flightCurrency || 'USD';
+
+        document.getElementById('modal-flight-form').classList.add('active');
+      } else if (item.type === 'hotel') {
+        openHotelForm(item);
+      } else {
+        document.getElementById('generic-edit-item-id').value = item.id;
+        document.getElementById('generic-item-type').value = item.type;
+        document.getElementById('generic-form-title').innerText = `✏ Editar ${item.type}`;
+        document.getElementById('generic-title').value = item.title;
+        document.getElementById('generic-sub').value = item.subtitle || '';
+
+        if (item.timestamp) {
+          const dt = new Date(item.timestamp);
+          const localIso = new Date(dt.getTime() - (dt.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+          document.getElementById('generic-time').value = localIso;
+        }
+
+        document.getElementById('modal-generic-form').classList.add('active');
+      }
+    }
+
+    /* GESTIÓN AVANZADA DE HOTELES */
+    function openHotelForm(existingItem = null) {
+      closeModals();
+      const formTitle = document.getElementById('hotel-form-modal-title');
+      const editIdInput = document.getElementById('edit-hotel-item-id');
+      const nameInput = document.getElementById('hotel-name');
+      const checkinInput = document.getElementById('hotel-checkin');
+      const checkoutInput = document.getElementById('hotel-checkout');
+      const costInput = document.getElementById('hotel-cost');
+      const currInput = document.getElementById('hotel-currency');
+      const addrInput = document.getElementById('hotel-address');
+
+      if (existingItem) {
+        formTitle.innerText = '✏ Editar Hotel';
+        editIdInput.value = existingItem.hotelGroupId || existingItem.id;
+        
+        let hotelNameClean = existingItem.title || '';
+        hotelNameClean = hotelNameClean.replace(/^Check-in:\s*/i, '').replace(/^Check-out:\s*/i, '');
+        nameInput.value = hotelNameClean;
+
+        if (existingItem.hotelCheckinTimestamp) {
+          const dt = new Date(existingItem.hotelCheckinTimestamp);
+          checkinInput.value = new Date(dt.getTime() - (dt.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+        } else if (existingItem.timestamp) {
+          const dt = new Date(existingItem.timestamp);
+          checkinInput.value = new Date(dt.getTime() - (dt.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+        }
+
+        if (existingItem.hotelCheckoutTimestamp) {
+          const arrDt = new Date(existingItem.hotelCheckoutTimestamp);
+          checkoutInput.value = new Date(arrDt.getTime() - (arrDt.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+        } else if (existingItem.arrTimestamp) {
+          const arrDt = new Date(existingItem.arrTimestamp);
+          checkoutInput.value = new Date(arrDt.getTime() - (arrDt.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+        }
+
+        costInput.value = existingItem.hotelCost || '';
+        currInput.value = existingItem.hotelCurrency || 'USD';
+        addrInput.value = existingItem.hotelAddress || '';
+      } else {
+        formTitle.innerText = '🏨 Registrar Hotel';
+        editIdInput.value = '';
+        nameInput.value = '';
+        checkinInput.value = '';
+        checkoutInput.value = '';
+        costInput.value = '';
+        currInput.value = 'USD';
+        addrInput.value = '';
+      }
+
+      document.getElementById('modal-hotel-form').classList.add('active');
+    }
+
+    function saveAdvancedHotel(e) {
+      e.preventDefault();
+      const editGroupId = document.getElementById('edit-hotel-item-id').value;
+      const hotelName = document.getElementById('hotel-name').value.trim();
+      const checkinVal = document.getElementById('hotel-checkin').value;
+      const checkoutVal = document.getElementById('hotel-checkout').value;
+      const costVal = parseFloat(document.getElementById('hotel-cost').value) || 0;
+      const currencyVal = document.getElementById('hotel-currency').value;
+      const addressVal = document.getElementById('hotel-address').value.trim();
+
+      const checkinDt = new Date(checkinVal);
+      const checkoutDt = new Date(checkoutVal);
+      const checkinTimestamp = checkinDt.getTime();
+      const checkoutTimestamp = checkoutDt.getTime();
+
+      const diffMs = checkoutTimestamp - checkinTimestamp;
+      const nights = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+      const costPerNight = costVal > 0 ? (costVal / nights).toFixed(2) : 0;
+
+      const checkinTimeStr = checkinDt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const checkinDayStr = checkinDt.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
+
+      const checkoutTimeStr = checkoutDt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const checkoutDayStr = checkoutDt.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
+
+      let detailsCheckin = [];
+      detailsCheckin.push(`Estadía Total: ${nights} ${nights === 1 ? 'noche' : 'noches'}`);
+      if (costVal > 0) {
+        detailsCheckin.push(`Costo Total: ${costVal.toFixed(2)} ${currencyVal}`);
+        detailsCheckin.push(`Costo por Noche: ${costPerNight} ${currencyVal}/noche`);
+      }
+      if (addressVal) detailsCheckin.push(`Dirección: ${addressVal}`);
+
+      let detailsCheckout = [];
+      detailsCheckout.push(`Finaliza estadía de ${nights} ${nights === 1 ? 'noche' : 'noches'}`);
+      if (addressVal) detailsCheckout.push(`Ubicación: ${addressVal}`);
+
+      const groupId = editGroupId || ('hotel-group-' + Date.now());
+
+      const activeTrip = trips.find(t => t.id === activeTripId);
+      if (activeTrip) {
+        if (editGroupId) {
+          activeTrip.items = activeTrip.items.filter(i => i.hotelGroupId !== editGroupId && i.id !== editGroupId);
+        }
+
+        activeTrip.items.push({
+          id: groupId + '-checkin',
+          hotelGroupId: groupId,
+          timestamp: checkinTimestamp,
+          arrTimestamp: checkoutTimestamp,
+          hotelCheckinTimestamp: checkinTimestamp,
+          hotelCheckoutTimestamp: checkoutTimestamp,
+          dayLabel: checkinDayStr,
+          time: checkinTimeStr,
+          tz: 'LOCAL',
+          type: 'hotel',
+          title: `Check-in: ${hotelName}`,
+          status: 'Entrada',
+          subtitle: `Entrada al alojamiento (${nights} ${nights === 1 ? 'noche' : 'noches'})`,
+          details: detailsCheckin,
+          hotelCost: costVal,
+          hotelCurrency: currencyVal,
+          hotelAddress: addressVal
+        });
+
+        activeTrip.items.push({
+          id: groupId + '-checkout',
+          hotelGroupId: groupId,
+          timestamp: checkoutTimestamp,
+          arrTimestamp: checkoutTimestamp,
+          hotelCheckinTimestamp: checkinTimestamp,
+          hotelCheckoutTimestamp: checkoutTimestamp,
+          dayLabel: checkoutDayStr,
+          time: checkoutTimeStr,
+          tz: 'LOCAL',
+          type: 'hotel',
+          title: `Check-out: ${hotelName}`,
+          status: 'Salida',
+          subtitle: `Salida del alojamiento`,
+          details: detailsCheckout,
+          hotelCost: costVal,
+          hotelCurrency: currencyVal,
+          hotelAddress: addressVal
+        });
+
+        saveDataToStorage();
+        renderTimeline();
+      }
+
+      closeModals();
+      e.target.reset();
+    }
+
+    function openFlightForm() {
+      closeModals();
+      document.getElementById('edit-item-id').value = '';
+      document.getElementById('flight-total-cost').value = '';
+      document.getElementById('flight-fare-cost').value = '';
+      document.getElementById('flight-currency').value = 'USD';
+      document.getElementById('flight-form-modal-title').innerText = '✈ Registrar Vuelo';
+      document.getElementById('modal-flight-form').classList.add('active');
+    }
+
+    function saveAdvancedFlight(e) {
+      e.preventDefault();
+      const editItemId = document.getElementById('edit-item-id').value;
+      const flightNo = document.getElementById('flight-no').value;
+      const airline = document.getElementById('flight-airline').value;
+      const origin = document.getElementById('flight-origin').value.toUpperCase();
+      const dest = document.getElementById('flight-dest').value.toUpperCase();
+      const datetime = document.getElementById('flight-dep-time').value;
+      const arrDatetime = document.getElementById('flight-arr-time').value;
+      const gate = document.getElementById('flight-gate').value;
+      const seat = document.getElementById('flight-seat').value;
+      const code = document.getElementById('flight-code').value;
+
+      const totalCostVal = parseFloat(document.getElementById('flight-total-cost').value) || 0;
+      const fareCostVal = parseFloat(document.getElementById('flight-fare-cost').value) || 0;
+      const currencyVal = document.getElementById('flight-currency').value;
+      const taxesVal = Math.max(0, totalCostVal - fareCostVal);
+
+      const dt = new Date(datetime);
+      const timestamp = dt.getTime();
+      const timeStr = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const dayStr = dt.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
+
+      let arrTimestamp = null;
+      let detailsArr = [];
+      if (code) detailsArr.push(`Confirmación PNR: ${code}`);
+      if (seat) detailsArr.push(`Asiento: ${seat}`);
+      if (gate) detailsArr.push(`Terminal / Gate: ${gate}`);
+      
+      if (totalCostVal > 0) {
+        let costLine = `Boleto Total: ${totalCostVal.toFixed(2)} ${currencyVal}`;
+        if (fareCostVal > 0) {
+          costLine += ` (Fare: ${fareCostVal.toFixed(2)} | Impuestos: ${taxesVal.toFixed(2)})`;
+        }
+        detailsArr.push(costLine);
+      }
+
+      if (arrDatetime) {
+        const arrDt = new Date(arrDatetime);
+        arrTimestamp = arrDt.getTime();
+        detailsArr.push(`Llegada: ${arrDt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
+      }
+
+      const activeTrip = trips.find(t => t.id === activeTripId);
+      if (activeTrip) {
+        if (editItemId) {
+          const existingItem = activeTrip.items.find(i => i.id === editItemId);
+          if (existingItem) {
+            existingItem.timestamp = timestamp;
+            existingItem.arrTimestamp = arrTimestamp;
+            existingItem.dayLabel = dayStr;
+            existingItem.time = timeStr;
+            existingItem.title = `${origin} – ${dest}`;
+            existingItem.subtitle = `${flightNo} (${airline})`;
+            existingItem.details = detailsArr;
+            existingItem.flightTotalCost = totalCostVal;
+            existingItem.flightFareCost = fareCostVal;
+            existingItem.flightTaxesCost = taxesVal;
+            existingItem.flightCurrency = currencyVal;
+          }
+        } else {
+          activeTrip.items.push({
+            id: 'item-' + Date.now(),
+            timestamp: timestamp,
+            arrTimestamp: arrTimestamp,
+            dayLabel: dayStr,
+            time: timeStr,
+            tz: 'LOCAL',
+            type: 'flight',
+            title: `${origin} – ${dest}`,
+            status: 'Programado',
+            subtitle: `${flightNo} (${airline})`,
+            details: detailsArr,
+            flightTotalCost: totalCostVal,
+            flightFareCost: fareCostVal,
+            flightTaxesCost: taxesVal,
+            flightCurrency: currencyVal
+          });
+        }
+        saveDataToStorage();
+        renderTimeline();
+      }
+
+      closeModals();
+      e.target.reset();
     }
 
     function switchFlightTab(subtabId) {
@@ -1302,7 +1634,7 @@
 
       if (subtabId === 'mapa') initFlightMap();
       else if (subtabId === 'vuelos') renderAirFlightsList();
-      else if (subtabId === 'stats') renderFlightStats();
+      else if (subtabId === 'stats') renderSelectedCategoryStats();
       else if (subtabId === 'aeropuertos') loadDefaultAirportGuide();
       else if (subtabId === 'equipaje') renderPackingList();
     }
@@ -1312,22 +1644,458 @@
         flightMap = L.map('leafletMap', { zoomControl: false }).setView([10, -75], 2);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(flightMap);
       }
-      setTimeout(() => { flightMap.invalidateSize(); }, 200);
+      setTimeout(() => {
+        flightMap.invalidateSize();
+        renderMapGeodesicRoutes();
+      }, 200);
+    }
+
+    async function renderMapGeodesicRoutes() {
+      if (!flightMap) return;
+
+      planeAnimMarkers.forEach(p => flightMap.removeLayer(p.marker));
+      planeAnimMarkers = [];
+      if (animFrameId) cancelAnimationFrame(animFrameId);
+
+      mapPolylines.forEach(line => flightMap.removeLayer(line));
+      mapPolylines = [];
+
+      let totalMiles = 0;
+      let totalFlightsCount = 0;
+      let airportCounts = {};
+      let airlineCounts = {};
+
+      for (let t of trips) {
+        for (let i of t.items) {
+          if (i.type === 'flight') {
+            totalFlightsCount++;
+
+            if (i.subtitle) {
+              const match = i.subtitle.match(/\((.*?)\)/);
+              const airlineName = match ? match[1].trim() : i.subtitle.trim();
+              if (airlineName) airlineCounts[airlineName] = (airlineCounts[airlineName] || 0) + 1;
+            }
+
+            const parts = i.title ? i.title.split('–') : [];
+            if (parts.length === 2) {
+              const origIata = parts[0].trim();
+              const destIata = parts[1].trim();
+
+              if (origIata) airportCounts[origIata] = (airportCounts[origIata] || 0) + 1;
+              if (destIata) airportCounts[destIata] = (airportCounts[destIata] || 0) + 1;
+              
+              let apOrig = await fetchAirportFromWikidata(origIata);
+              let apDest = await fetchAirportFromWikidata(destIata);
+
+              if (apOrig && apDest) {
+                const startPt = [apOrig.lng, apOrig.lat];
+                const endPt = [apDest.lng, apDest.lat];
+
+                const gcArc = turf.greatCircle(turf.point(startPt), turf.point(endPt), { npoints: 50 });
+                const leafletCoords = gcArc.geometry.coordinates.map(c => [c[1], c[0]]);
+
+                const polylineLayer = L.polyline(leafletCoords, { color: '#0084ff', weight: 3, opacity: 0.8 }).addTo(flightMap);
+                mapPolylines.push(polylineLayer);
+
+                const planeIcon = L.divIcon({
+                  html: `<i class="fa-solid fa-plane text-emerald-400 text-sm transform -rotate-45"></i>`,
+                  className: 'plane-pin', iconSize: [16, 16]
+                });
+
+                const planeMarker = L.marker(leafletCoords[0], { icon: planeIcon }).addTo(flightMap);
+                planeAnimMarkers.push({ marker: planeMarker, coords: leafletCoords, step: 0 });
+
+                totalMiles += Math.round(turf.distance(turf.point(startPt), turf.point(endPt), { units: 'miles' }));
+              }
+            }
+          }
+        }
+      }
+
+      document.getElementById('map-total-distance').innerText = `${totalMiles.toLocaleString()} mi`;
+      document.getElementById('map-total-flights').innerText = totalFlightsCount.toString();
+
+      const sortedAirports = Object.entries(airportCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      const airportsUl = document.getElementById('map-top-airports');
+      if (sortedAirports.length > 0) {
+        airportsUl.innerHTML = sortedAirports.map(([iata, count], index) => `
+          <li class="top-list-item">
+            <span><b>#${index + 1}</b> ${iata}</span>
+            <span class="top-list-badge">${count} ${count === 1 ? 'visita' : 'visitas'}</span>
+          </li>
+        `).join('');
+      } else {
+        airportsUl.innerHTML = `<li class="top-list-item" style="color:#94a3b8;">Sin aeropuertos registrados</li>`;
+      }
+
+      const sortedAirlines = Object.entries(airlineCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      const airlinesUl = document.getElementById('map-top-airlines');
+      if (sortedAirlines.length > 0) {
+        airlinesUl.innerHTML = sortedAirlines.map(([airline, count], index) => `
+          <li class="top-list-item">
+            <span><b>#${index + 1}</b> ${airline}</span>
+            <span class="top-list-badge">${count} ${count === 1 ? 'vuelo' : 'vuelos'}</span>
+          </li>
+        `).join('');
+      } else {
+        airlinesUl.innerHTML = `<li class="top-list-item" style="color:#94a3b8;">Sin aerolíneas registradas</li>`;
+      }
+
+      animatePlanes();
+    }
+
+    function animatePlanes() {
+      planeAnimMarkers.forEach(p => {
+        p.step = (p.step + 1) % p.coords.length;
+        p.marker.setLatLng(p.coords[p.step]);
+      });
+      animFrameId = requestAnimationFrame(() => { setTimeout(animatePlanes, 100); });
     }
 
     function renderAirFlightsList() {
       const container = document.getElementById('air-flights-list');
-      container.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8;">Lista de vuelos sincronizados.</div>`;
+      container.innerHTML = '';
+      let flightCount = 0;
+      const now = new Date();
+
+      trips.forEach(t => {
+        let tripFlights = t.items.filter(i => i.type === 'flight').sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+        if (currentFlightTimeFilter === 'upcoming') {
+          tripFlights = tripFlights.filter(f => (f.timestamp || 0) >= now.getTime());
+        } else if (currentFlightTimeFilter === 'past') {
+          tripFlights = tripFlights.filter(f => (f.timestamp || 0) < now.getTime());
+        }
+
+        if (tripFlights.length > 0) {
+          let groups = [];
+          let currentGroup = [tripFlights[0]];
+
+          for (let i = 0; i < tripFlights.length - 1; i++) {
+            const curr = tripFlights[i];
+            const next = tripFlights[i + 1];
+            const currDest = curr.title ? curr.title.split('–')[1]?.trim() : '';
+            const nextOrigin = next.title ? next.title.split('–')[0]?.trim() : '';
+
+            let timeDiffMs = (next.timestamp && curr.arrTimestamp) ? (next.timestamp - curr.arrTimestamp) : 0;
+            const isDirectConnection = (currDest && nextOrigin && currDest === nextOrigin && timeDiffMs < 18 * 3600 * 1000);
+
+            if (isDirectConnection) {
+              currentGroup.push(next);
+            } else {
+              groups.push(currentGroup);
+              currentGroup = [next];
+            }
+          }
+          if (currentGroup.length > 0 && !groups.includes(currentGroup)) {
+            groups.push(currentGroup);
+          }
+
+          groups.forEach(group => {
+            flightCount++;
+            const firstFlight = group[0];
+            const lastFlight = group[group.length - 1];
+
+            const startCity = firstFlight.title ? firstFlight.title.split('–')[0]?.trim() : 'Origen';
+            const endCity = lastFlight.title ? lastFlight.title.split('–')[1]?.trim() : 'Destino';
+            const routeTitle = `${startCity} — ${endCity}`;
+
+            let flightsHtml = '';
+            group.forEach(f => {
+              const parts = f.title ? f.title.split('–') : ['', ''];
+              const fOrig = parts[0]?.trim() || '';
+              const fDest = parts[1]?.trim() || '';
+              flightsHtml += `
+                <div style="margin-bottom: 8px; border-left: 2px solid var(--primary); padding-left: 8px;">
+                  <div style="font-size:0.8rem; font-weight:700; color:#fff;">${f.subtitle || 'Vuelo'} (${fOrig} — ${fDest})</div>
+                  <div style="font-size:0.75rem; color:#94a3b8;">📅 ${f.dayLabel} • ${f.time}</div>
+                </div>
+              `;
+            });
+
+            let tripDurationHtml = '';
+            const lastArr = lastFlight.arrTimestamp || lastFlight.timestamp;
+            const totalMs = lastArr - firstFlight.timestamp;
+            if (totalMs > 0) {
+              const totalMins = Math.floor(totalMs / (1000 * 60));
+              const dh = Math.floor(totalMins / 60);
+              const dm = totalMins % 60;
+              tripDurationHtml = `
+                <div class="trip-duration-footer">
+                  <i class="fa-regular fa-clock"></i> Duración del trayecto: ${dh} h ${dm > 0 ? dm + ' min' : ''}
+                </div>
+              `;
+            }
+
+            container.innerHTML += `
+              <div class="air-flight-card">
+                <div class="air-flight-header">
+                  <div class="air-flight-route">${routeTitle}</div>
+                  <span class="air-flight-badge">${t.title}</span>
+                </div>
+                <div style="margin-top: 8px;">
+                  ${flightsHtml}
+                </div>
+                ${tripDurationHtml}
+              </div>
+            `;
+          });
+        }
+      });
+
+      if (flightCount === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8;">No hay vuelos registrados en esta categoría.</div>`;
+      }
     }
 
-    function renderFlightStats() {
-      document.getElementById('stat-miles').innerText = "0";
-      document.getElementById('stat-hours').innerText = "0 h";
+    /* SISTEMA CONTROLADOR DE MÚLTIPLES ESTADÍSTICAS */
+    function renderSelectedCategoryStats() {
+      const selectedCat = document.getElementById('stats-category-select').value;
+      
+      document.getElementById('stats-panel-trips').style.display = 'none';
+      document.getElementById('stats-panel-flights').style.display = 'none';
+      document.getElementById('stats-panel-hotels').style.display = 'none';
+
+      if (selectedCat === 'trips') {
+        document.getElementById('stats-panel-trips').style.display = 'block';
+        renderTripCategoryStats();
+      } else if (selectedCat === 'flights') {
+        document.getElementById('stats-panel-flights').style.display = 'block';
+        renderFlightStats();
+      } else if (selectedCat === 'hotels') {
+        document.getElementById('stats-panel-hotels').style.display = 'block';
+        renderHotelCategoryStats();
+      }
+    }
+
+    function renderTripCategoryStats() {
+      let totalTripDays = 0;
+      let totalTripExpenses = 0;
+      let countryCounts = {};
+
+      trips.forEach(t => {
+        let items = (t.items || []).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+        if (items.length > 0) {
+          const firstTime = items[0].timestamp || 0;
+          const lastTime = items[items.length - 1].arrTimestamp || items[items.length - 1].timestamp || firstTime;
+          if (lastTime > firstTime) {
+            const diffDays = Math.ceil((lastTime - firstTime) / (1000 * 60 * 60 * 24));
+            totalTripDays += Math.max(1, diffDays);
+          } else {
+            totalTripDays += 1;
+          }
+        }
+
+        const titleParts = t.title.split('–').concat(t.title.split(' '));
+        titleParts.forEach(p => {
+          const clean = p.trim();
+          if (clean.length > 3) countryCounts[clean] = (countryCounts[clean] || 0) + 1;
+        });
+
+        (t.items || []).forEach(i => {
+          if (i.type === 'hotel' && i.hotelCost && i.status === 'Entrada') {
+            totalTripExpenses += parseFloat(i.hotelCost) || 0;
+          }
+        });
+      });
+
+      const totalTripsCount = trips.length;
+      const avgDays = totalTripsCount > 0 ? (totalTripDays / totalTripsCount).toFixed(1) : 0;
+
+      document.getElementById('trip-stat-days').innerText = totalTripDays;
+      document.getElementById('trip-stat-expenses').innerText = `$${totalTripExpenses.toLocaleString()}`;
+      document.getElementById('trip-stat-count').innerText = totalTripsCount;
+      document.getElementById('trip-stat-avg-days').innerText = `${avgDays} días`;
+
+      const sortedCountries = Object.entries(countryCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+      const countriesUl = document.getElementById('trip-top-countries');
+      if (sortedCountries.length > 0) {
+        countriesUl.innerHTML = sortedCountries.map(([dest, count], idx) => `
+          <li class="top-list-item">
+            <span><b>#${idx + 1}</b> ${dest}</span>
+            <span class="top-list-badge">${count} ${count === 1 ? 'viaje' : 'viajes'}</span>
+          </li>
+        `).join('');
+      } else {
+        countriesUl.innerHTML = `<li class="top-list-item" style="color:#94a3b8;">Sin registros de destinos</li>`;
+      }
+    }
+
+    function renderHotelCategoryStats() {
+      let totalNights = 0;
+      let totalCost = 0;
+      let hotelBrandCounts = {};
+
+      trips.forEach(t => {
+        (t.items || []).forEach(i => {
+          if (i.type === 'hotel' && i.status === 'Entrada') {
+            if (i.hotelCheckinTimestamp && i.hotelCheckoutTimestamp) {
+              const diffMs = i.hotelCheckoutTimestamp - i.hotelCheckinTimestamp;
+              const nights = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+              totalNights += nights;
+            } else {
+              totalNights += 1;
+            }
+
+            if (i.hotelCost) {
+              totalCost += parseFloat(i.hotelCost) || 0;
+            }
+
+            let cleanTitle = i.title ? i.title.replace(/^Check-in:\s*/i, '').trim() : 'Hotel no especificado';
+            hotelBrandCounts[cleanTitle] = (hotelBrandCounts[cleanTitle] || 0) + 1;
+          }
+        });
+      });
+
+      const avgCostPerNight = totalNights > 0 ? (totalCost / totalNights).toFixed(2) : '0.00';
+
+      document.getElementById('hotel-stat-nights').innerText = totalNights;
+      document.getElementById('hotel-stat-cost').innerText = `$${totalCost.toLocaleString()}`;
+      document.getElementById('hotel-stat-avg-night').innerText = `$${avgCostPerNight}`;
+
+      const sortedBrands = Object.entries(hotelBrandCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+      const brandsUl = document.getElementById('hotel-top-brands');
+      if (sortedBrands.length > 0) {
+        brandsUl.innerHTML = sortedBrands.map(([brand, count], idx) => `
+          <li class="top-list-item">
+            <span><b>#${idx + 1}</b> ${brand}</span>
+            <span class="top-list-badge">${count} ${count === 1 ? 'reserva' : 'reservas'}</span>
+          </li>
+        `).join('');
+      } else {
+        brandsUl.innerHTML = `<li class="top-list-item" style="color:#94a3b8;">Sin hoteles registrados</li>`;
+      }
+    }
+
+    async function renderFlightStats() {
+      let totalMiles = 0;
+      let totalFlightMinutes = 0;
+      let totalFlightsCount = 0;
+      let totalFlightCost = 0;
+      let totalFareCost = 0;
+      let totalTaxesCost = 0;
+
+      let airlineCounts = {};
+      let airlineSpending = {};
+
+      for (let t of trips) {
+        for (let i of t.items) {
+          if (i.type === 'flight') {
+            totalFlightsCount++;
+
+            if (i.flightTotalCost) {
+              totalFlightCost += parseFloat(i.flightTotalCost) || 0;
+            }
+            if (i.flightFareCost) {
+              totalFareCost += parseFloat(i.flightFareCost) || 0;
+            }
+            if (i.flightTaxesCost) {
+              totalTaxesCost += parseFloat(i.flightTaxesCost) || 0;
+            } else if (i.flightTotalCost && i.flightFareCost) {
+              totalTaxesCost += Math.max(0, parseFloat(i.flightTotalCost) - parseFloat(i.flightFareCost));
+            }
+
+            if (i.timestamp && i.arrTimestamp) {
+              const diffMins = Math.max(0, Math.floor((i.arrTimestamp - i.timestamp) / (1000 * 60)));
+              totalFlightMinutes += diffMins;
+            }
+
+            const parts = i.title ? i.title.split('–') : [];
+            if (parts.length === 2) {
+              const origIata = parts[0].trim();
+              const destIata = parts[1].trim();
+              const apOrig = await fetchAirportFromWikidata(origIata);
+              const apDest = await fetchAirportFromWikidata(destIata);
+              if (apOrig && apDest) {
+                const distMiles = Math.round(turf.distance(
+                  turf.point([apOrig.lng, apOrig.lat]),
+                  turf.point([apDest.lng, apDest.lat]),
+                  { units: 'miles' }
+                ));
+                totalMiles += distMiles;
+              }
+            }
+
+            if (i.subtitle) {
+              const match = i.subtitle.match(/\((.*?)\)/);
+              const airlineName = match ? match[1].trim() : 'Otra';
+              airlineCounts[airlineName] = (airlineCounts[airlineName] || 0) + 1;
+              airlineSpending[airlineName] = (airlineSpending[airlineName] || 0) + (parseFloat(i.flightTotalCost) || 0);
+            }
+          }
+        }
+      }
+
+      const totalFlightHours = (totalFlightMinutes / 60).toFixed(1);
+      const avgCostPerFlight = totalFlightsCount > 0 ? (totalFlightCost / totalFlightsCount).toFixed(2) : '0.00';
+      const costPerMile = totalMiles > 0 ? (totalFlightCost / totalMiles).toFixed(2) : '0.00';
+
+      document.getElementById('flight-stat-total-cost').innerText = `$${totalFlightCost.toLocaleString()}`;
+      document.getElementById('flight-stat-fare-taxes').innerText = `$${totalFareCost.toLocaleString()} / $${totalTaxesCost.toLocaleString()}`;
+
+      document.getElementById('stat-miles').innerText = totalMiles.toLocaleString();
+      document.getElementById('stat-hours').innerText = `${totalFlightHours} h`;
+
+      document.getElementById('flight-stat-avg-cost').innerText = `$${avgCostPerFlight}`;
+      document.getElementById('flight-stat-cost-per-mile').innerText = `$${costPerMile}/mi`;
+
+      // Top 10 Aerolíneas por Gasto
+      const sortedAirlineSpending = Object.entries(airlineSpending).sort((a, b) => b[1] - a[1]).slice(0, 10);
+      const airlineSpendingUl = document.getElementById('flight-top-airlines-spending');
+      if (sortedAirlineSpending.length > 0) {
+        airlineSpendingUl.innerHTML = sortedAirlineSpending.map(([airline, amount], idx) => `
+          <li class="top-list-item">
+            <span><b>#${idx + 1}</b> ${airline}</span>
+            <span class="top-list-badge" style="background:rgba(16,185,129,0.2); color:#10b981;">$${amount.toLocaleString()}</span>
+          </li>
+        `).join('');
+      } else {
+        airlineSpendingUl.innerHTML = `<li class="top-list-item" style="color:#94a3b8;">Sin costos de aerolíneas registrados</li>`;
+      }
+
+      // Gráfico Donut de Aerolíneas
+      const labels = Object.keys(airlineCounts);
+      const dataValues = Object.values(airlineCounts);
+      const backgroundColors = ['#0084ff', '#10b981', '#ffb703', '#ec4899', '#8b5cf6'];
+
+      const ctx = document.getElementById('airlinesChart').getContext('2d');
+      if (airlinesChartObj) airlinesChartObj.destroy();
+
+      if (labels.length === 0) {
+        labels.push('Sin vuelos');
+        dataValues.push(1);
+      }
+
+      airlinesChartObj = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: dataValues,
+            backgroundColor: backgroundColors.slice(0, labels.length)
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } }
+          }
+        }
+      });
     }
 
     function renderPackingList() {
       const container = document.getElementById('packing-list-container');
       container.innerHTML = '';
+      let doneCount = packingItems.filter(i => i.done).length;
+      document.getElementById('packing-progress-text').innerText = `${doneCount} de ${packingItems.length} completados`;
+
+      if (packingItems.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8; font-size:0.8rem;">La lista está vacía. Añade tus artículos arriba.</div>`;
+        return;
+      }
+
       packingItems.forEach(item => {
         container.innerHTML += `
           <div class="packing-item-card ${item.done ? 'done' : ''}">
@@ -1335,6 +2103,9 @@
               <i class="fa-solid ${item.done ? 'fa-circle-check text-emerald-400' : 'fa-circle text-slate-600'}"></i>
               <span style="font-size:0.8rem; color:#fff;">${item.text}</span>
             </div>
+            <button class="delete-item-btn" onclick="deletePackingItem(event, ${item.id})" title="Eliminar artículo">
+              <i class="fa-solid fa-trash"></i>
+            </button>
           </div>
         `;
       });
@@ -1346,17 +2117,313 @@
       renderPackingList();
     }
 
+    function deletePackingItem(event, id) {
+      event.stopPropagation();
+      packingItems = packingItems.filter(i => i.id !== id);
+      saveDataToStorage();
+      renderPackingList();
+    }
+
+    function resetPackingCheckmarks() {
+      packingItems = packingItems.map(i => ({ ...i, done: false }));
+      saveDataToStorage();
+      renderPackingList();
+    }
+
+    function addPackingItem(e) {
+      e.preventDefault();
+      const input = document.getElementById('packing-input');
+      if (!input.value.trim()) return;
+      packingItems.push({ id: Date.now(), text: input.value.trim(), done: false });
+      saveDataToStorage();
+      renderPackingList();
+      input.value = '';
+    }
+
+    function openModalImportAppInTheAir() {
+      closeModals();
+      document.getElementById('ait-text-input').value = '';
+      document.getElementById('modal-import-ait').classList.add('active');
+    }
+
+    function handleAitFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('ait-text-input').value = e.target.result;
+      };
+      reader.readAsText(file);
+    }
+
+    function processAitImportText() {
+      const rawText = document.getElementById('ait-text-input').value;
+      if (!rawText.trim()) {
+        alert("Selecciona un archivo o pega el texto formateado.");
+        return;
+      }
+
+      const parsedTrips = parseAppInTheAirData(rawText);
+      if (parsedTrips.length === 0) {
+        alert("No se identificaron itinerarios válidos.");
+        return;
+      }
+
+      let addedCount = 0;
+      parsedTrips.forEach(newTrip => {
+        trips.unshift(newTrip);
+        addedCount++;
+      });
+
+      saveDataToStorage();
+      renderTrips();
+      closeModals();
+      alert(`✔ Importación completada: ${addedCount} viaje(s) añadidos.`);
+    }
+
+    function parseAppInTheAirData(raw) {
+      const tripBlocks = raw.split(/Ownership\.MINE;/g).slice(1);
+      const importedTrips = [];
+
+      tripBlocks.forEach((block, idx) => {
+        const lines = block.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        if (lines.length === 0) return;
+
+        const headerParts = lines[0].split(';');
+        const depTimeIso = headerParts[0] || '';
+        const arrTimeIso = headerParts[1] || '';
+        const orig = headerParts[2] || '';
+        const dest = headerParts[3] || '';
+        let customName = headerParts[6] && headerParts[6] !== 'None' ? headerParts[6] : `${orig} – ${dest}`;
+
+        const items = [];
+        let readingFlights = false;
+
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i];
+          if (line.startsWith('flights:')) {
+            readingFlights = true;
+            continue;
+          }
+          if (line.startsWith('hotels:') || line.startsWith('rental cars:') || line.startsWith('expenses:')) {
+            readingFlights = false;
+            continue;
+          }
+
+          if (readingFlights && line.includes(';')) {
+            const fParts = line.split(';');
+            if (fParts.length >= 13) {
+              const airlineCode = fParts[7] || '';
+              const flightNum = fParts[8] || '';
+              const fOrig = fParts[10] || orig;
+              const fDest = fParts[11] || dest;
+              const fDepIso = fParts[12] || depTimeIso;
+              const fArrIso = fParts[13] || arrTimeIso;
+
+              const depDt = fDepIso ? new Date(fDepIso) : new Date();
+              const arrDt = fArrIso ? new Date(fArrIso) : null;
+
+              const dayStr = depDt.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
+              const timeStr = depDt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+              items.push({
+                id: 'item-ait-' + Date.now() + Math.random().toString(36).substr(2, 4),
+                timestamp: depDt.getTime(),
+                arrTimestamp: arrDt ? arrDt.getTime() : null,
+                dayLabel: dayStr,
+                time: timeStr,
+                tz: 'LOCAL',
+                type: 'flight',
+                title: `${fOrig} – ${fDest}`,
+                status: 'Completado',
+                subtitle: `${airlineCode}${flightNum}`,
+                details: [`Origen: ${fOrig}`, `Destino: ${fDest}`]
+              });
+            }
+          }
+        }
+
+        const startDt = depTimeIso ? new Date(depTimeIso) : new Date();
+        const endDt = arrTimeIso ? new Date(arrTimeIso) : startDt;
+        const datesFormatted = `${startDt.toLocaleDateString('es-ES', { day:'numeric', month:'short', year:'numeric' })} – ${endDt.toLocaleDateString('es-ES', { day:'numeric', month:'short', year:'numeric' })}`;
+
+        importedTrips.push({
+          id: 'trip-ait-' + Date.now() + idx,
+          title: customName,
+          dates: datesFormatted,
+          daysCount: 'Histórico',
+          daysToGo: 'App in the Air',
+          image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=200&q=80',
+          items: items
+        });
+      });
+
+      return importedTrips;
+    }
+
+    function openModalMergeTrips() {
+      closeModals();
+      const container = document.getElementById('merge-trips-list');
+      container.innerHTML = '';
+
+      if (trips.length < 2) {
+        container.innerHTML = `<div style="text-align:center; padding:10px; color:#94a3b8;">Necesitas al menos 2 viajes registrados para unirlos.</div>`;
+      } else {
+        trips.forEach(t => {
+          container.innerHTML += `
+            <label class="merge-trip-item">
+              <input type="checkbox" value="${t.id}" class="merge-checkbox">
+              <div style="flex:1;">
+                <div style="font-size:0.85rem; font-weight:700; color:#fff;">${t.title}</div>
+                <div style="font-size:0.72rem; color:#94a3b8;">${t.dates} • ${t.items.length} elementos</div>
+              </div>
+            </label>
+          `;
+        });
+      }
+
+      document.getElementById('modal-merge-trips').classList.add('active');
+    }
+
+    function executeTripMerge() {
+      const selectedBoxes = Array.from(document.querySelectorAll('.merge-checkbox:checked')).map(cb => cb.value);
+      if (selectedBoxes.length < 2) {
+        alert("Selecciona al menos 2 viajes para fusionar.");
+        return;
+      }
+
+      const tripsToMerge = trips.filter(t => selectedBoxes.includes(t.id));
+      const customNameInput = document.getElementById('merged-trip-name').value.trim();
+
+      let mergedItems = [];
+      tripsToMerge.forEach(t => {
+        mergedItems = mergedItems.concat(t.items || []);
+      });
+
+      mergedItems.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+      const firstItemTime = mergedItems[0]?.timestamp ? new Date(mergedItems[0].timestamp) : new Date();
+      const lastItemTime = mergedItems[mergedItems.length - 1]?.timestamp ? new Date(mergedItems[mergedItems.length - 1].timestamp) : firstItemTime;
+
+      const newTitle = customNameInput || `Viaje Consolidado (${tripsToMerge[0].title.split('–')[0]}...)`;
+      const datesFormatted = `${firstItemTime.toLocaleDateString('es-ES', { day:'numeric', month:'short' })} – ${lastItemTime.toLocaleDateString('es-ES', { day:'numeric', month:'short', year:'numeric' })}`;
+
+      const mergedTrip = {
+        id: 'merged-' + Date.now(),
+        title: newTitle,
+        dates: datesFormatted,
+        daysCount: 'Consolidado',
+        daysToGo: 'Unificado',
+        image: tripsToMerge[0].image || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=200&q=80',
+        items: mergedItems
+      };
+
+      trips = trips.filter(t => !selectedBoxes.includes(t.id));
+      trips.unshift(mergedTrip);
+
+      saveDataToStorage();
+      renderTrips();
+      closeModals();
+      alert(`✔ Viajes unificados en "${newTitle}".`);
+    }
+
+    function handleTripImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Img = e.target.result;
+        document.getElementById('trip-image-url').value = base64Img;
+        updateImagePreview(base64Img);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateImagePreview(src) {
+      const previewBox = document.getElementById('trip-image-preview-box');
+      const previewImg = document.getElementById('trip-image-preview');
+      if (src && src.trim()) {
+        previewImg.src = src;
+        previewBox.style.display = 'block';
+      } else {
+        previewBox.style.display = 'none';
+      }
+    }
+
+    function openModalNewTrip() {
+      closeModals();
+      document.getElementById('edit-trip-id').value = '';
+      document.getElementById('modal-trip-title').innerText = 'Crear Nuevo Viaje';
+      document.getElementById('trip-name-input').value = '';
+      document.getElementById('trip-dest-input').value = '';
+      document.getElementById('trip-start-input').value = '';
+      document.getElementById('trip-end-input').value = '';
+      document.getElementById('trip-image-url').value = '';
+      document.getElementById('trip-image-file').value = '';
+      updateImagePreview('');
+      document.getElementById('modal-new-trip').classList.add('active');
+    }
+
+    function editCurrentTrip() {
+      closeModals();
+      const trip = trips.find(t => t.id === activeTripId);
+      if (!trip) return;
+      document.getElementById('edit-trip-id').value = trip.id;
+      document.getElementById('modal-trip-title').innerText = 'Editar Viaje';
+      document.getElementById('trip-name-input').value = trip.title;
+      document.getElementById('trip-dest-input').value = trip.title;
+      document.getElementById('trip-image-url').value = trip.image || '';
+      document.getElementById('trip-image-file').value = '';
+      updateImagePreview(trip.image || '');
+      document.getElementById('modal-new-trip').classList.add('active');
+    }
+
+    function askDeleteCurrentTrip() {
+      closeModals();
+      const trip = trips.find(t => t.id === activeTripId);
+      if (!trip) return;
+      document.getElementById('delete-trip-msg').innerText = `Se eliminará el viaje "${trip.title}" y todos sus itinerarios registrados.`;
+      document.getElementById('modal-confirm-delete').classList.add('active');
+    }
+
+    function confirmDeleteTrip() {
+      trips = trips.filter(t => t.id !== activeTripId);
+      saveDataToStorage();
+      renderTrips();
+      closeModals();
+      showScreen('trips-list');
+    }
+
+    function shareActiveTrip() {
+      const trip = trips.find(t => t.id === activeTripId);
+      if (!trip) return;
+      if (navigator.share) {
+        navigator.share({ title: trip.title, text: `Echa un vistazo a mi itinerario de viaje: ${trip.title}` });
+      } else {
+        alert(`Enlace copiado al portapapeles.`);
+      }
+    }
+
+    function exportCalendar() {
+      closeModals();
+      alert('Sincronización iniciada: El archivo .ics ha sido preparado.');
+    }
+
     function showScreen(screenId) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(`screen-${screenId}`).classList.add('active');
       currentScreen = screenId;
+
       if (screenId === 'flight-stats') initFlightMap();
     }
 
     function switchTab(screenId, titleName) {
       document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
       if (event && event.currentTarget) event.currentTarget.classList.add('active');
-      if (screenId === 'placeholder') document.getElementById('placeholder-title').innerText = titleName;
+
+      if (screenId === 'placeholder') {
+        document.getElementById('placeholder-title').innerText = titleName;
+      }
       showScreen(screenId);
     }
 
@@ -1366,22 +2433,280 @@
       showScreen('trip-detail');
     }
 
+    function handleFabClick() {
+      if (currentScreen === 'trips-list') {
+        openModalNewTrip();
+      } else if (currentScreen === 'trip-detail') {
+        document.getElementById('modal-add-item').classList.add('active');
+      } else {
+        openModalNewTrip();
+      }
+    }
+
     function closeModals() {
       document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
       document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('active'));
     }
 
-    function openModalNewTrip() {
+    function openGenericForm(type, titleText) {
       closeModals();
-      document.getElementById('modal-new-trip').classList.add('active');
+      document.getElementById('generic-edit-item-id').value = '';
+      document.getElementById('generic-item-type').value = type;
+      document.getElementById('generic-form-title').innerText = titleText;
+      document.getElementById('modal-generic-form').classList.add('active');
     }
 
-    function handleFabClick() { openModalNewTrip(); }
+    function saveGenericItem(e) {
+      e.preventDefault();
+      const editItemId = document.getElementById('generic-edit-item-id').value;
+      const type = document.getElementById('generic-item-type').value;
+      const title = document.getElementById('generic-title').value;
+      const datetime = document.getElementById('generic-time').value;
+      const sub = document.getElementById('generic-sub').value;
 
-    window.onload = function() {
+      const dt = new Date(datetime);
+      const timestamp = dt.getTime();
+      const timeStr = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const dayStr = dt.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
+
+      const activeTrip = trips.find(t => t.id === activeTripId);
+      if (activeTrip) {
+        if (editItemId) {
+          const existingItem = activeTrip.items.find(i => i.id === editItemId);
+          if (existingItem) {
+            existingItem.timestamp = timestamp;
+            existingItem.dayLabel = dayStr;
+            existingItem.time = timeStr;
+            existingItem.title = title;
+            existingItem.subtitle = sub;
+          }
+        } else {
+          activeTrip.items.push({
+            id: 'item-' + Date.now(),
+            timestamp: timestamp,
+            dayLabel: dayStr,
+            time: timeStr,
+            tz: 'LOCAL',
+            type: type,
+            title: title,
+            status: 'Confirmado',
+            subtitle: sub,
+            details: []
+          });
+        }
+        saveDataToStorage();
+        renderTimeline();
+      }
+
+      closeModals();
+      e.target.reset();
+    }
+
+    function saveTripForm(e) {
+      e.preventDefault();
+      const editId = document.getElementById('edit-trip-id').value;
+      const name = document.getElementById('trip-name-input').value;
+      const start = document.getElementById('trip-start-input').value;
+      const end = document.getElementById('trip-end-input').value;
+      const imageUrl = document.getElementById('trip-image-url').value.trim();
+      const defaultImg = 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=200&q=80';
+
+      if (editId) {
+        const trip = trips.find(t => t.id === editId);
+        if (trip) {
+          trip.title = name;
+          if (start && end) trip.dates = `${start} – ${end}`;
+          if (imageUrl) trip.image = imageUrl;
+          saveDataToStorage();
+          renderTimeline();
+          renderTrips();
+        }
+      } else {
+        const newTrip = {
+          id: Date.now().toString(),
+          title: name,
+          dates: `${start} – ${end}`,
+          daysCount: 'Próximamente',
+          daysToGo: 'en agenda',
+          image: imageUrl || defaultImg,
+          items: []
+        };
+        trips.unshift(newTrip);
+        saveDataToStorage();
+        renderTrips();
+      }
+      closeModals();
+    }
+
+    /* GOOGLE DRIVE Y RESPALDOS */
+    function connectGoogleDrive() {
+      if (typeof google === 'undefined') {
+        alert('Librería de Google en proceso de carga.');
+        return;
+      }
+
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: 'https://www.googleapis.com/auth/drive.file',
+        callback: (response) => {
+          if (response.access_token) {
+            driveAccessToken = response.access_token;
+            document.getElementById('drive-status-text').innerHTML = '🟢 <b style="color:#10b981;">Conectado a Google Drive</b>.';
+            document.getElementById('btn-connect-drive').style.display = 'none';
+            performManualBackup();
+          }
+        },
+      });
+
+      tokenClient.requestAccessToken();
+    }
+
+    function performManualBackup() {
+      if (!driveAccessToken) {
+        connectGoogleDrive();
+        return;
+      }
+
+      const backupData = {
+        app: 'TripMaster Pro',
+        version: '2.0',
+        timestamp: Date.now(),
+        dateStr: new Date().toLocaleString('es-ES'),
+        trips: trips,
+        packingItems: packingItems
+      };
+
+      const fileContent = JSON.stringify(backupData, null, 2);
+      const metadata = { name: 'tripmaster_backup.json', mimeType: 'application/json' };
+
+      const formData = new FormData();
+      formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      formData.append('file', new Blob([fileContent], { type: 'application/json' }));
+
+      fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+        method: 'POST',
+        headers: new Headers({ 'Authorization': 'Bearer ' + driveAccessToken }),
+        body: formData
+      }).then(res => res.json()).then(data => {
+        const now = Date.now();
+        localStorage.setItem('last_drive_backup_timestamp', now.toString());
+        updateLastBackupDisplay();
+        alert('✔ Respaldo guardado en Google Drive.');
+      }).catch(err => {
+        console.error('Error Drive:', err);
+      });
+    }
+
+    function performManualRestore() {
+      if (!driveAccessToken) {
+        connectGoogleDrive();
+        return;
+      }
+
+      fetch("https://www.googleapis.com/drive/v3/files?q=name='tripmaster_backup.json'", {
+        headers: { 'Authorization': 'Bearer ' + driveAccessToken }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.files && data.files.length > 0) {
+          const fileId = data.files[0].id;
+          fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+            headers: { 'Authorization': 'Bearer ' + driveAccessToken }
+          })
+          .then(res => res.json())
+          .then(backupData => {
+            if (backupData.trips && backupData.packingItems) {
+              trips = backupData.trips;
+              packingItems = backupData.packingItems;
+              saveDataToStorage();
+              renderTrips();
+              renderPackingList();
+              alert(`✔ Restauración completada: ${trips.length} viaje(s) recuperados.`);
+            }
+          });
+        } else {
+          alert('No se encontró el archivo "tripmaster_backup.json" en Google Drive.');
+        }
+      });
+    }
+
+    function checkAndPerformAutoBackup() {
+      let lastBackup = localStorage.getItem('last_drive_backup_timestamp');
+      let frequency = localStorage.getItem('backup_frequency') || 'weekly';
+
+      if (!lastBackup || !driveAccessToken || frequency === 'off') return;
+
+      const now = Date.now();
+      const ONE_DAY = 24 * 60 * 60 * 1000;
+      let threshold = ONE_DAY * 7;
+
+      if (frequency === 'daily') threshold = ONE_DAY;
+      if (frequency === 'monthly') threshold = ONE_DAY * 30;
+
+      if (now - parseInt(lastBackup) > threshold) performManualBackup();
+    }
+
+    function saveBackupFrequency() {
+      const val = document.getElementById('backup-frequency').value;
+      localStorage.setItem('backup_frequency', val);
+    }
+
+    function updateLastBackupDisplay() {
+      const lastBackup = localStorage.getItem('last_drive_backup_timestamp');
+      const freq = localStorage.getItem('backup_frequency') || 'weekly';
+      const select = document.getElementById('backup-frequency');
+      if (select) select.value = freq;
+
+      if (lastBackup) {
+        const dt = new Date(parseInt(lastBackup));
+        const lbl = document.getElementById('last-backup-text');
+        if (lbl) lbl.innerText = `Último respaldo realizado: ${dt.toLocaleDateString('es-ES')} ${dt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
+      }
+    }
+
+    function exportLocalJson() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ trips, packingItems }, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `tripmaster_backup_${Date.now()}.json`);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importLocalJson(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        try {
+          const parsed = JSON.parse(event.target.result);
+          if (parsed.trips && parsed.packingItems) {
+            trips = parsed.parsed.trips;
+            packingItems = parsed.packingItems;
+            saveDataToStorage();
+            renderTrips();
+            renderPackingList();
+            alert('✔ Datos importados correctamente.');
+          }
+        } catch (err) {
+          alert('El archivo no es un respaldo válido de TripMaster.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    window.onload = function(e) {
       loadDataFromStorage();
       renderTrips();
     };
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('Service Worker registrado con éxito', reg))
+          .catch(err => console.error('Error al registrar Service Worker', err));
+      });
+    }
   </script>
 </body>
 </html>
