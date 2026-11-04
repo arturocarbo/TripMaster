@@ -2673,6 +2673,7 @@
       downloadAnchor.remove();
     }
 
+    // IMPORTACIÓN LOCAL CORREGIDA (PROPIEDAD DIRECTA .trips)
     function importLocalJson(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -2681,12 +2682,14 @@
         try {
           const parsed = JSON.parse(event.target.result);
           if (parsed.trips && parsed.packingItems) {
-            trips = parsed.parsed.trips;
+            trips = parsed.trips;
             packingItems = parsed.packingItems;
             saveDataToStorage();
             renderTrips();
             renderPackingList();
             alert('✔ Datos importados correctamente.');
+          } else {
+            alert('El archivo no contiene la estructura correcta de respaldos.');
           }
         } catch (err) {
           alert('El archivo no es un respaldo válido de TripMaster.');
