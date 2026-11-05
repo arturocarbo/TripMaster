@@ -2557,7 +2557,7 @@
       }
     }
 
-    /* SISTEMA CONTROLADOR DE MÚLTIPLES ESTADÍSTICAS */
+    /* SISTEMA CONTROLADOR DE MÚLTIPLES ESTADÍSTICAS (CORREGIDO) */
     function renderSelectedCategoryStats() {
       const selectedCat = document.getElementById('stats-category-select').value;
       
@@ -2612,7 +2612,7 @@
       const avgDays = totalTripsCount > 0 ? (totalTripDays / totalTripsCount).toFixed(1) : 0;
 
       document.getElementById('trip-stat-days').innerText = totalTripDays;
-      document.getElementById('trip-stat-expenses').innerText = `$${totalTripExpenses.toLocaleString()}`;
+      document.getElementById('trip-stat-expenses').innerText = `$${totalTripExpenses.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       document.getElementById('trip-stat-count').innerText = totalTripsCount;
       document.getElementById('trip-stat-avg-days').innerText = `${avgDays} días`;
 
@@ -2633,21 +2633,23 @@
     function renderHotelCategoryStats() {
       let totalNights = 0;
       let totalCost = 0;
+      let nightsWithCostCount = 0; // CONTADOR FILTRADO PARA PROMEDIO ACCURATE
       let hotelBrandCounts = {};
 
       trips.forEach(t => {
         (t.items || []).forEach(i => {
           if (i.type === 'hotel' && i.status === 'Entrada') {
+            let nights = 1;
             if (i.hotelCheckinTimestamp && i.hotelCheckoutTimestamp) {
               const diffMs = i.hotelCheckoutTimestamp - i.hotelCheckinTimestamp;
-              const nights = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)));
-              totalNights += nights;
-            } else {
-              totalNights += 1;
+              nights = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)));
             }
+            totalNights += nights;
 
-            if (i.hotelCost) {
-              totalCost += parseFloat(i.hotelCost) || 0;
+            const costVal = parseFloat(i.hotelCost) || 0;
+            if (costVal > 0) {
+              totalCost += costVal;
+              nightsWithCostCount += nights; // Solo suma las noches que SÍ tienen costo registrado
             }
 
             let cleanTitle = i.title ? i.title.replace(/^Check-in:\s*/i, '').trim() : 'Hotel no especificado';
@@ -2656,10 +2658,11 @@
         });
       });
 
-      const avgCostPerNight = totalNights > 0 ? (totalCost / totalNights).toFixed(2) : '0.00';
+      // El promedio por noche ahora divide únicamente entre las noches que tuvieron un precio asignado
+      const avgCostPerNight = nightsWithCostCount > 0 ? (totalCost / nightsWithCostCount).toFixed(2) : '0.00';
 
       document.getElementById('hotel-stat-nights').innerText = totalNights;
-      document.getElementById('hotel-stat-cost').innerText = `$${totalCost.toLocaleString()}`;
+      document.getElementById('hotel-stat-cost').innerText = `$${totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       document.getElementById('hotel-stat-avg-night').innerText = `$${avgCostPerNight}`;
 
       const sortedBrands = Object.entries(hotelBrandCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
@@ -2678,8 +2681,11 @@
 
     async function renderFlightStats() {
       let totalMiles = 0;
+      let milesWithCost = 0; // MILLAS QUE TIENEN PRECIO PARA EL COSTO POR MILLA REAL
       let totalFlightMinutes = 0;
       let totalFlightsCount = 0;
+      let flightsWithCostCount = 0; // VUELOS QUE TIENEN COSTO MAYOR A $0
+
       let totalFlightCost = 0;
       let totalFareCost = 0;
       let totalTaxesCost = 0;
@@ -2692,9 +2698,12 @@
           if (i.type === 'flight') {
             totalFlightsCount++;
 
-            if (i.flightTotalCost) {
-              totalFlightCost += parseFloat(i.flightTotalCost) || 0;
+            const flightCostVal = parseFloat(i.flightTotalCost) || 0;
+            if (flightCostVal > 0) {
+              flightsWithCostCount++;
+              totalFlightCost += flightCostVal;
             }
+
             if (i.flightFareCost) {
               totalFareCost += parseFloat(i.flightFareCost) || 0;
             }
@@ -2722,6 +2731,11 @@
                   { units: 'miles' }
                 ));
                 totalMiles += distMiles;
+
+                // Solo sumar a las millas del promedio si este vuelo tuvo costo
+                if (flightCostVal > 0) {
+                  milesWithCost += distMiles;
+                }
               }
             }
 
@@ -2729,18 +2743,22 @@
               const match = i.subtitle.match(/\((.*?)\)/);
               const airlineName = match ? match[1].trim() : 'Otra';
               airlineCounts[airlineName] = (airlineCounts[airlineName] || 0) + 1;
-              airlineSpending[airlineName] = (airlineSpending[airlineName] || 0) + (parseFloat(i.flightTotalCost) || 0);
+              if (flightCostVal > 0) {
+                airlineSpending[airlineName] = (airlineSpending[airlineName] || 0) + flightCostVal;
+              }
             }
           }
         }
       }
 
       const totalFlightHours = (totalFlightMinutes / 60).toFixed(1);
-      const avgCostPerFlight = totalFlightsCount > 0 ? (totalFlightCost / totalFlightsCount).toFixed(2) : '0.00';
-      const costPerMile = totalMiles > 0 ? (totalFlightCost / totalMiles).toFixed(2) : '0.00';
+      
+      // PROMEDIOS CALCULADOS SÓLO SOBRE REGISTROS CON COSTO VÁLIDO (> $0)
+      const avgCostPerFlight = flightsWithCostCount > 0 ? (totalFlightCost / flightsWithCostCount).toFixed(2) : '0.00';
+      const costPerMile = milesWithCost > 0 ? (totalFlightCost / milesWithCost).toFixed(2) : '0.00';
 
-      document.getElementById('flight-stat-total-cost').innerText = `$${totalFlightCost.toLocaleString()}`;
-      document.getElementById('flight-stat-fare-taxes').innerText = `$${totalFareCost.toLocaleString()} / $${totalTaxesCost.toLocaleString()}`;
+      document.getElementById('flight-stat-total-cost').innerText = `$${totalFlightCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      document.getElementById('flight-stat-fare-taxes').innerText = `$${totalFareCost.toLocaleString('en-US')} / $${totalTaxesCost.toLocaleString('en-US')}`;
 
       document.getElementById('stat-miles').innerText = totalMiles.toLocaleString();
       document.getElementById('stat-hours').innerText = `${totalFlightHours} h`;
@@ -2755,7 +2773,7 @@
         airlineSpendingUl.innerHTML = sortedAirlineSpending.map(([airline, amount], idx) => `
           <li class="top-list-item">
             <span><b>#${idx + 1}</b> ${airline}</span>
-            <span class="top-list-badge" style="background:rgba(16,185,129,0.2); color:#10b981;">$${amount.toLocaleString()}</span>
+            <span class="top-list-badge" style="background:rgba(16,185,129,0.2); color:#10b981;">$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </li>
         `).join('');
       } else {
