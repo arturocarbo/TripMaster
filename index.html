@@ -181,7 +181,7 @@
     }
     .bottom-nav {
       position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background-color: #0f172a;
-      border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-around; align-items: center; z-index: 80;
+      border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-space-around; align-items: center; z-index: 80;
     }
     .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--text-muted); font-size: 0.65rem; cursor: pointer; border: none; background: none; width: 20%; position: relative; }
     .nav-item i { font-size: 1.1rem; }
@@ -1360,7 +1360,7 @@
       const trip = trips.find(t => t.id === activeTripId);
       if (!trip) return;
 
-      // CÁLCULO DINÁMICO DE GASTOS TOTALES DEL VIAJE (INCLUYE VUELOS, HOTELES, AUTOS Y RESTAURANTES)
+      // CÁLCULO DINÁMICO DE GASTOS TOTALES DEL VIAJE
       let totalTripCost = 0;
       let primaryCurrency = 'USD';
 
@@ -3143,6 +3143,7 @@
       downloadAnchor.remove();
     }
 
+    /* FUNCIÓN CORREGIDA PARA IMPORTAR ARCHIVO LOCAL .JSON */
     function importLocalJson(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -3150,17 +3151,26 @@
       reader.onload = function(event) {
         try {
           const parsed = JSON.parse(event.target.result);
-          if (parsed.trips && parsed.packingItems) {
-            trips = parsed.parsed.trips || parsed.trips;
-            packingItems = parsed.packingItems;
+          
+          // Compatibilidad flexible de claves
+          const importedTrips = parsed.trips || parsed.tripsData;
+          const importedPacking = parsed.packingItems || parsed.packing;
+
+          if (importedTrips && Array.isArray(importedTrips)) {
+            trips = importedTrips;
+            if (importedPacking) {
+              packingItems = importedPacking;
+            }
+            
             saveDataToStorage();
             renderTrips();
             renderPackingList();
-            alert('✔ Datos importados correctamente.');
+            alert('✔ Datos restaurados e importados correctamente.');
           } else {
             alert('El archivo no contiene la estructura correcta de respaldos.');
           }
         } catch (err) {
+          console.error('Error al importar:', err);
           alert('El archivo no es un respaldo válido de TripMaster.');
         }
       };
