@@ -1624,8 +1624,13 @@
           if (item.type === 'flight' && nextItem.type === 'flight') {
             const currentDest = item.title ? item.title.split('–')[1]?.trim() : '';
             const nextOrigin = nextItem.title ? nextItem.title.split('–')[0]?.trim() : '';
+            const nextDest = nextItem.title ? nextItem.title.split('–')[1]?.trim() : '';
+            const currentOrigin = item.title ? item.title.split('–')[0]?.trim() : '';
 
-            if (currentDest && nextOrigin && currentDest === nextOrigin) {
+            // Si el siguiente vuelo es el regreso exacto (ej. SJO -> SAL después de SAL -> SJO), NO es una escala
+            const isReturnFlight = (currentOrigin === nextDest && currentDest === nextOrigin);
+
+            if (currentDest && nextOrigin && currentDest === nextOrigin && !isReturnFlight) {
               let diffMs = 0;
               if (item.arrTimestamp && nextItem.timestamp) {
                 diffMs = nextItem.timestamp - item.arrTimestamp;
@@ -1633,7 +1638,8 @@
                 diffMs = nextItem.timestamp - (item.timestamp + (2.5 * 3600 * 1000));
               }
 
-              const MAX_LAYOVER_MS = 24 * 60 * 60 * 1000;
+              // Una escala válida dura como máximo 12 horas en el mismo aeropuerto
+              const MAX_LAYOVER_MS = 12 * 60 * 60 * 1000;
               if (diffMs > 0 && diffMs <= MAX_LAYOVER_MS) {
                 const totalMinutes = Math.floor(diffMs / (1000 * 60));
                 const hours = Math.floor(totalMinutes / 60);
