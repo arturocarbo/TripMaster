@@ -1726,7 +1726,7 @@
         document.getElementById('flight-form-modal-title').innerText = '✏ Editar Vuelo';
         document.getElementById('edit-item-id').value = item.id;
 
-        const ports = item.title.split('–');
+        const ports = item.title ? item.title.split('–') : ['', ''];
         document.getElementById('flight-origin').value = ports[0] ? ports[0].trim() : '';
         document.getElementById('flight-dest').value = ports[1] ? ports[1].trim() : '';
 
@@ -2316,6 +2316,7 @@
             time: timeStr,
             tz: 'LOCAL',
             type: 'flight',
+            title: `${origin} – ${dest}`,
             status: 'Programado',
             subtitle: `${flightNo} (${airline})`,
             details: detailsArr,
@@ -2557,7 +2558,7 @@
       }
     }
 
-    /* SISTEMA CONTROLADOR DE MÚLTIPLES ESTADÍSTICAS (CORREGIDO) */
+    /* SISTEMA CONTROLADOR DE MÚLTIPLES ESTADÍSTICAS */
     function renderSelectedCategoryStats() {
       const selectedCat = document.getElementById('stats-category-select').value;
       
@@ -2633,7 +2634,7 @@
     function renderHotelCategoryStats() {
       let totalNights = 0;
       let totalCost = 0;
-      let nightsWithCostCount = 0; // CONTADOR FILTRADO PARA PROMEDIO ACCURATE
+      let nightsWithCostCount = 0;
       let hotelBrandCounts = {};
 
       trips.forEach(t => {
@@ -2649,7 +2650,7 @@
             const costVal = parseFloat(i.hotelCost) || 0;
             if (costVal > 0) {
               totalCost += costVal;
-              nightsWithCostCount += nights; // Solo suma las noches que SÍ tienen costo registrado
+              nightsWithCostCount += nights;
             }
 
             let cleanTitle = i.title ? i.title.replace(/^Check-in:\s*/i, '').trim() : 'Hotel no especificado';
@@ -2658,7 +2659,6 @@
         });
       });
 
-      // El promedio por noche ahora divide únicamente entre las noches que tuvieron un precio asignado
       const avgCostPerNight = nightsWithCostCount > 0 ? (totalCost / nightsWithCostCount).toFixed(2) : '0.00';
 
       document.getElementById('hotel-stat-nights').innerText = totalNights;
@@ -2681,10 +2681,10 @@
 
     async function renderFlightStats() {
       let totalMiles = 0;
-      let milesWithCost = 0; // MILLAS QUE TIENEN PRECIO PARA EL COSTO POR MILLA REAL
+      let milesWithCost = 0;
       let totalFlightMinutes = 0;
       let totalFlightsCount = 0;
-      let flightsWithCostCount = 0; // VUELOS QUE TIENEN COSTO MAYOR A $0
+      let flightsWithCostCount = 0;
 
       let totalFlightCost = 0;
       let totalFareCost = 0;
@@ -2732,7 +2732,6 @@
                 ));
                 totalMiles += distMiles;
 
-                // Solo sumar a las millas del promedio si este vuelo tuvo costo
                 if (flightCostVal > 0) {
                   milesWithCost += distMiles;
                 }
@@ -2753,7 +2752,6 @@
 
       const totalFlightHours = (totalFlightMinutes / 60).toFixed(1);
       
-      // PROMEDIOS CALCULADOS SÓLO SOBRE REGISTROS CON COSTO VÁLIDO (> $0)
       const avgCostPerFlight = flightsWithCostCount > 0 ? (totalFlightCost / flightsWithCostCount).toFixed(2) : '0.00';
       const costPerMile = milesWithCost > 0 ? (totalFlightCost / milesWithCost).toFixed(2) : '0.00';
 
@@ -2766,7 +2764,6 @@
       document.getElementById('flight-stat-avg-cost').innerText = `$${avgCostPerFlight}`;
       document.getElementById('flight-stat-cost-per-mile').innerText = `$${costPerMile}/mi`;
 
-      // Top 10 Aerolíneas por Gasto
       const sortedAirlineSpending = Object.entries(airlineSpending).sort((a, b) => b[1] - a[1]).slice(0, 10);
       const airlineSpendingUl = document.getElementById('flight-top-airlines-spending');
       if (sortedAirlineSpending.length > 0) {
@@ -2780,7 +2777,6 @@
         airlineSpendingUl.innerHTML = `<li class="top-list-item" style="color:#94a3b8;">Sin costos de aerolíneas registrados</li>`;
       }
 
-      // Gráfico Donut de Aerolíneas
       const labels = Object.keys(airlineCounts);
       const dataValues = Object.values(airlineCounts);
       const backgroundColors = ['#0084ff', '#10b981', '#ffb703', '#ec4899', '#8b5cf6'];
