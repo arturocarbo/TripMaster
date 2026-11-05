@@ -616,6 +616,20 @@
       </button>
     </nav>
 
+    <!-- BANNER FLOTANTE DE ACTUALIZACIÓN -->
+    <div id="update-toast" style="display: none; position: fixed; bottom: 75px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: #0f172a; border: 1px solid #0084ff; padding: 12px 16px; border-radius: 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.7); z-index: 9999; justify-content: space-between; align-items: center; backdrop-filter: blur(8px);">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <i class="fa-solid fa-rocket" style="color: #0084ff; font-size: 1.2rem;"></i>
+        <div>
+          <div style="font-size: 0.85rem; font-weight: 700; color: #fff;">Nueva versión lista</div>
+          <div style="font-size: 0.72rem; color: #94a3b8;">Actualiza para ver los cambios</div>
+        </div>
+      </div>
+      <button id="btn-update-app" onclick="reloadAppVersion()" style="background: #0084ff; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer; white-space: nowrap;">
+        Actualizar ahora
+      </button>
+    </div>
+
     <!-- MODALES -->
     <div class="modal-overlay" id="modal-add-item">
       <div class="action-sheet">
@@ -687,7 +701,7 @@
       </div>
     </div>
 
-    <!-- MODAL FORMULARIO DE ALQUILER DE AUTO (NUEVO Y COMPLETO) -->
+    <!-- MODAL FORMULARIO DE ALQUILER DE AUTO -->
     <div class="modal-overlay" id="modal-car-form">
       <div class="action-sheet">
         <div class="sheet-header">
@@ -752,7 +766,7 @@
       </div>
     </div>
 
-    <!-- MODAL FORMULARIO DE RESTAURANTE (NUEVO Y COMPLETO) -->
+    <!-- MODAL FORMULARIO DE RESTAURANTE -->
     <div class="modal-overlay" id="modal-restaurant-form">
       <div class="action-sheet">
         <div class="sheet-header">
@@ -1715,7 +1729,7 @@
       e.target.reset();
     }
 
-    /* GESTIÓN AVANZADA DE ALQUILER DE AUTOS (NUEVO) */
+    /* GESTIÓN AVANZADA DE ALQUILER DE AUTOS */
     function openCarForm(existingItem = null) {
       closeModals();
       const formTitle = document.getElementById('car-form-modal-title');
@@ -1872,7 +1886,7 @@
       e.target.reset();
     }
 
-    /* GESTIÓN AVANZADA DE RESTAURANTES (NUEVO) */
+    /* GESTIÓN AVANZADA DE RESTAURANTES */
     function openRestaurantForm(existingItem = null) {
       closeModals();
       const formTitle = document.getElementById('restaurant-form-modal-title');
@@ -3137,7 +3151,7 @@
         try {
           const parsed = JSON.parse(event.target.result);
           if (parsed.trips && parsed.packingItems) {
-            trips = parsed.trips;
+            trips = parsed.parsed.trips || parsed.trips;
             packingItems = parsed.packingItems;
             saveDataToStorage();
             renderTrips();
@@ -3153,18 +3167,46 @@
       reader.readAsText(file);
     }
 
+    /* CONTROL DE ACTUALIZACIÓN AUTOMÁTICA DE SERVICE WORKER */
+    let newWorker;
+
+    function reloadAppVersion() {
+      if (newWorker) {
+        newWorker.postMessage({ action: 'skipWaiting' });
+      }
+      window.location.reload();
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+          console.log('Service Worker registrado con éxito');
+
+          reg.addEventListener('updatefound', () => {
+            newWorker = reg.installing;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                const toast = document.getElementById('update-toast');
+                if (toast) toast.style.display = 'flex';
+              }
+            });
+          });
+        }).catch(err => console.error('Error al registrar Service Worker', err));
+
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
+        });
+      });
+    }
+
     window.onload = function(e) {
       loadDataFromStorage();
       renderTrips();
     };
-
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('Service Worker registrado con éxito', reg))
-          .catch(err => console.error('Error al registrar Service Worker', err));
-      });
-    }
   </script>
 </body>
 </html>
