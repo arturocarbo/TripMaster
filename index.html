@@ -181,7 +181,7 @@
     }
     .bottom-nav {
       position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background-color: #0f172a;
-      border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-space-around; align-items: center; z-index: 80;
+      border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-around; align-items: center; z-index: 80;
     }
     .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--text-muted); font-size: 0.65rem; cursor: pointer; border: none; background: none; width: 20%; position: relative; }
     .nav-item i { font-size: 1.1rem; }
@@ -3143,7 +3143,7 @@
       downloadAnchor.remove();
     }
 
-    /* FUNCIÓN CORREGIDA PARA IMPORTAR ARCHIVO LOCAL .JSON */
+    /* FUNCIÓN PARA IMPORTAR ARCHIVO LOCAL .JSON */
     function importLocalJson(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -3152,7 +3152,6 @@
         try {
           const parsed = JSON.parse(event.target.result);
           
-          // Compatibilidad flexible de claves
           const importedTrips = parsed.trips || parsed.tripsData;
           const importedPacking = parsed.packingItems || parsed.packing;
 
@@ -3177,7 +3176,7 @@
       reader.readAsText(file);
     }
 
-    /* CONTROL DE ACTUALIZACIÓN AUTOMÁTICA DE SERVICE WORKER */
+    /* CONTROL MEJORADO DE ACTUALIZACIÓN AUTOMÁTICA Y NOTIFICACIONES */
     let newWorker;
 
     function reloadAppVersion() {
@@ -3187,17 +3186,29 @@
       window.location.reload();
     }
 
+    function showUpdateToast(worker) {
+      newWorker = worker;
+      const toast = document.getElementById('update-toast');
+      if (toast) toast.style.display = 'flex';
+    }
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').then(reg => {
           console.log('Service Worker registrado con éxito');
 
+          // Forzar comprobación de versión con el servidor al cargar
+          reg.update();
+
+          if (reg.waiting) {
+            showUpdateToast(reg.waiting);
+          }
+
           reg.addEventListener('updatefound', () => {
-            newWorker = reg.installing;
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                const toast = document.getElementById('update-toast');
-                if (toast) toast.style.display = 'flex';
+            const installingWorker = reg.installing;
+            installingWorker.addEventListener('statechange', () => {
+              if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                showUpdateToast(installingWorker);
               }
             });
           });
