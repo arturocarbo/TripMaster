@@ -208,6 +208,8 @@
     .delete-item-btn { background: none; border: none; color: #ef4444; padding: 4px 6px; cursor: pointer; font-size: 0.85rem; border-radius: 4px; }
     .btn-reset-check { background: rgba(255, 183, 3, 0.15); color: #ffb703; border: 1px solid rgba(255, 183, 3, 0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; }
 
+    .payment-card-item { background: #0f172a; border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+
     .merge-trip-item { display: flex; align-items: center; gap: 10px; background: var(--card-bg); border: 1px solid var(--card-border); padding: 10px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; }
     .merge-trip-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
   </style>
@@ -512,13 +514,27 @@
       </div>
     </div>
 
-    <!-- SCREEN 4: ACCOUNT -->
+    <!-- SCREEN 4: ACCOUNT (CON MÉTODOS DE PAGO) -->
     <div id="screen-account" class="screen">
       <div class="app-header">
         <div class="header-title"><i class="fa-solid fa-user-gear" style="color:#38bdf8;"></i> Cuenta & Respaldos</div>
       </div>
 
       <div style="padding: 16px;">
+
+        <!-- SECCIÓN MÉTODOS DE PAGO -->
+        <div class="dark-card" style="margin-bottom: 14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div class="dark-card-title" style="margin-bottom:0;"><i class="fa-solid fa-credit-card" style="color:#0084ff;"></i> Métodos de Pago Guardados</div>
+            <button onclick="openModalAddPaymentMethod()" style="background:#0084ff; color:#fff; border:none; padding:4px 10px; border-radius:6px; font-size:0.7rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px;">
+              <i class="fa-solid fa-plus"></i> Añadir
+            </button>
+          </div>
+          <div style="font-size:0.7rem; color:#94a3b8; margin-bottom:10px;">Guarda tus tarjetas y métodos para vincularlos rápidamente a tus gastos de viaje.</div>
+          <div id="payment-methods-list"></div>
+        </div>
+
+        <!-- GOOGLE DRIVE BANNER -->
         <div class="dark-card" style="margin-bottom: 14px; text-align: center;">
           <i class="fa-brands fa-google" style="font-size: 2.2rem; color: #0084ff; margin-bottom: 8px;"></i>
           <div style="font-size: 0.95rem; font-weight: 700; color: #fff;">Conexión con Google Drive</div>
@@ -647,6 +663,41 @@
       </div>
     </div>
 
+    <!-- MODAL REGISTRAR NUEVO MÉTODO DE PAGO -->
+    <div class="modal-overlay" id="modal-add-payment">
+      <div class="action-sheet">
+        <div class="sheet-header">
+          <div class="sheet-title">💳 Registrar Método de Pago</div>
+          <button class="sheet-close" onclick="closeModals()">&times;</button>
+        </div>
+        <form onsubmit="saveNewPaymentMethod(event)">
+          <div class="form-group">
+            <label>Tipo / Franquicia</label>
+            <select id="pay-type-select" onchange="togglePaymentInputs(this.value)" required>
+              <option value="Visa">Visa</option>
+              <option value="MasterCard">MasterCard</option>
+              <option value="American Express">American Express</option>
+              <option value="Discover">Discover</option>
+              <option value="Transferencia / Banco">Transferencia / Banco</option>
+              <option value="Efectivo">Efectivo</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Nombre Personalizado de la Tarjeta o Cuenta</label>
+            <input type="text" id="pay-name-input" placeholder="Ej. Visa BAC Preferencial / Débito Santander" required>
+          </div>
+
+          <div class="form-group" id="group-pay-last4">
+            <label>Últimos 4 Dígitos (Opcional)</label>
+            <input type="text" id="pay-last4-input" maxlength="4" placeholder="Ej. 4812">
+          </div>
+
+          <button type="submit" class="btn-submit">Guardar Método de Pago</button>
+        </form>
+      </div>
+    </div>
+
     <!-- MODAL FORMULARIO DE HOTEL AVANZADO -->
     <div class="modal-overlay" id="modal-hotel-form">
       <div class="action-sheet">
@@ -689,6 +740,11 @@
                 <option value="ARS">ARS ($)</option>
               </select>
             </div>
+          </div>
+
+          <div class="form-group">
+            <label>💳 Método de Pago Usado</label>
+            <select id="hotel-payment-method" class="payment-selector-dropdown"></select>
           </div>
 
           <div class="form-group">
@@ -752,6 +808,11 @@
           </div>
 
           <div class="form-group">
+            <label>💳 Método de Pago Usado</label>
+            <select id="car-payment-method" class="payment-selector-dropdown"></select>
+          </div>
+
+          <div class="form-group">
             <label>Lugar de Entrega / Oficina</label>
             <input type="text" id="car-location" placeholder="Ej. Aeropuerto de Guayaquil (GYE) / Terminal 2">
           </div>
@@ -811,6 +872,11 @@
           </div>
 
           <div class="form-group">
+            <label>💳 Método de Pago Usado</label>
+            <select id="restaurant-payment-method" class="payment-selector-dropdown"></select>
+          </div>
+
+          <div class="form-group">
             <label>Ubicación / Dirección</label>
             <input type="text" id="restaurant-address" placeholder="Ej. Malecón 2000, Zona Rosa">
           </div>
@@ -825,7 +891,7 @@
       </div>
     </div>
 
-    <!-- MODAL FORMULARIO DE VUELO CON TARIFAS E IMPUESTOS -->
+    <!-- MODAL FORMULARIO DE VUELO CON TARIFAS E IMPUESTOS Y MÉTODO DE PAGO -->
     <div class="modal-overlay" id="modal-flight-form">
       <div class="action-sheet">
         <div class="sheet-header">
@@ -889,6 +955,11 @@
             </div>
           </div>
 
+          <div class="form-group">
+            <label>💳 Método de Pago Usado</label>
+            <select id="flight-payment-method" class="payment-selector-dropdown"></select>
+          </div>
+
           <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px;">
             <div class="form-group">
               <label>Terminal / Gate</label>
@@ -921,6 +992,10 @@
           <div class="form-group"><label>Nombre / Proveedor / Título</label><input type="text" id="generic-title" placeholder="Ej. Reunión / Excursión" required></div>
           <div class="form-group"><label>Fecha y Hora</label><input type="datetime-local" id="generic-time" required></div>
           <div class="form-group"><label>Ubicación / Detalles</label><input type="text" id="generic-sub" placeholder="Ej. Dirección"></div>
+          <div class="form-group">
+            <label>💳 Método de Pago Usado (Opcional)</label>
+            <select id="generic-payment-method" class="payment-selector-dropdown"></select>
+          </div>
           <button type="submit" class="btn-submit" id="btn-save-generic">Añadir al Itinerario</button>
         </form>
       </div>
@@ -1069,8 +1144,14 @@
       { id: 3, text: 'Cargadores & Batería externa', done: false }
     ];
 
+    const DEFAULT_PAYMENT_METHODS = [
+      { id: 'cash', type: 'Efectivo', name: 'Efectivo Local', last4: '' },
+      { id: 'visa-default', type: 'Visa', name: 'Visa Preferencial', last4: '4321' }
+    ];
+
     let trips = [];
     let packingItems = [];
+    let paymentMethods = [];
     let currentScreen = 'trips-list';
     let activeTripId = '1';
 
@@ -1078,6 +1159,7 @@
       try {
         localStorage.setItem('tripmaster_trips', JSON.stringify(trips));
         localStorage.setItem('tripmaster_packing', JSON.stringify(packingItems));
+        localStorage.setItem('tripmaster_payments', JSON.stringify(paymentMethods));
         checkAndPerformAutoBackup();
       } catch (e) { console.error("Error guardando datos:", e); }
     }
@@ -1086,6 +1168,7 @@
       try {
         const storedTrips = localStorage.getItem('tripmaster_trips');
         const storedPacking = localStorage.getItem('tripmaster_packing');
+        const storedPayments = localStorage.getItem('tripmaster_payments');
 
         if (storedTrips) {
           trips = JSON.parse(storedTrips);
@@ -1095,10 +1178,115 @@
         if (storedPacking) { packingItems = JSON.parse(storedPacking); } 
         else { packingItems = INITIAL_PACKING_ITEMS; }
 
+        if (storedPayments) { paymentMethods = JSON.parse(storedPayments); }
+        else { paymentMethods = DEFAULT_PAYMENT_METHODS; }
+
         updateLastBackupDisplay();
+        renderPaymentMethodsList();
       } catch (e) {
-        trips = INITIAL_TRIPS; packingItems = INITIAL_PACKING_ITEMS;
+        trips = INITIAL_TRIPS; packingItems = INITIAL_PACKING_ITEMS; paymentMethods = DEFAULT_PAYMENT_METHODS;
       }
+    }
+
+    /* MÓDULO DE MÉTODOS DE PAGO */
+    function renderPaymentMethodsList() {
+      const container = document.getElementById('payment-methods-list');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (paymentMethods.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:12px; color:#94a3b8; font-size:0.75rem;">No tienes métodos de pago guardados.</div>`;
+      } else {
+        paymentMethods.forEach(method => {
+          let icon = 'fa-credit-card';
+          if (method.type === 'Visa') icon = 'fa-cc-visa';
+          else if (method.type === 'MasterCard') icon = 'fa-cc-mastercard';
+          else if (method.type === 'American Express') icon = 'fa-cc-amex';
+          else if (method.type === 'Discover') icon = 'fa-cc-discover';
+          else if (method.type === 'Efectivo') icon = 'fa-money-bill-wave';
+          else if (method.type.includes('Banco') || method.type.includes('Transferencia')) icon = 'fa-building-columns';
+
+          container.innerHTML += `
+            <div class="payment-card-item">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <i class="fa-solid ${icon}" style="font-size:1.2rem; color:#0084ff;"></i>
+                <div>
+                  <div style="font-size:0.82rem; font-weight:700; color:#fff;">${method.name}</div>
+                  <div style="font-size:0.68rem; color:#94a3b8;">${method.type} ${method.last4 ? '• ••• ' + method.last4 : ''}</div>
+                </div>
+              </div>
+              <button onclick="deletePaymentMethod('${method.id}')" style="background:none; border:none; color:#ef4444; font-size:0.85rem; cursor:pointer; padding:4px;">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          `;
+        });
+      }
+
+      populatePaymentSelectors();
+    }
+
+    function populatePaymentSelectors() {
+      const dropdowns = document.querySelectorAll('.payment-selector-dropdown');
+      dropdowns.forEach(select => {
+        const currentVal = select.value;
+        select.innerHTML = `<option value="">Sin definir / No especificado</option>`;
+        paymentMethods.forEach(m => {
+          const label = `${m.name} (${m.type}${m.last4 ? ' • ' + m.last4 : ''})`;
+          select.innerHTML += `<option value="${m.id}">${label}</option>`;
+        });
+        if (currentVal) select.value = currentVal;
+      });
+    }
+
+    function openModalAddPaymentMethod() {
+      closeModals();
+      document.getElementById('pay-name-input').value = '';
+      document.getElementById('pay-last4-input').value = '';
+      document.getElementById('pay-type-select').value = 'Visa';
+      togglePaymentInputs('Visa');
+      document.getElementById('modal-add-payment').classList.add('active');
+    }
+
+    function togglePaymentInputs(typeVal) {
+      const last4Group = document.getElementById('group-pay-last4');
+      if (typeVal === 'Efectivo' || typeVal.includes('Transferencia')) {
+        last4Group.style.display = 'none';
+      } else {
+        last4Group.style.display = 'block';
+      }
+    }
+
+    function saveNewPaymentMethod(e) {
+      e.preventDefault();
+      const type = document.getElementById('pay-type-select').value;
+      const name = document.getElementById('pay-name-input').value.trim();
+      const last4 = document.getElementById('pay-last4-input').value.trim();
+
+      const newMethod = {
+        id: 'pay-' + Date.now(),
+        type: type,
+        name: name,
+        last4: (type === 'Efectivo' || type.includes('Transferencia')) ? '' : last4
+      };
+
+      paymentMethods.push(newMethod);
+      saveDataToStorage();
+      renderPaymentMethodsList();
+      closeModals();
+    }
+
+    function deletePaymentMethod(id) {
+      paymentMethods = paymentMethods.filter(m => m.id !== id);
+      saveDataToStorage();
+      renderPaymentMethodsList();
+    }
+
+    function getPaymentMethodLabel(paymentId) {
+      if (!paymentId) return null;
+      const found = paymentMethods.find(m => m.id === paymentId);
+      if (!found) return null;
+      return `${found.name} (${found.type}${found.last4 ? ' • ' + found.last4 : ''})`;
     }
 
     // CONSULTA EN TIEMPO REAL VÍA WIKIDATA & OSM
@@ -1487,6 +1675,13 @@
           <div style="font-size:0.8rem; color:#38bdf8; margin-bottom:10px;">📅 ${item.dayLabel} a las ${item.time}</div>
       `;
 
+      if (item.paymentMethodId) {
+        const payLbl = getPaymentMethodLabel(item.paymentMethodId);
+        if (payLbl) {
+          html += `<div style="font-size:0.75rem; color:#ffb703; font-weight:700; margin-bottom:8px;"><i class="fa-solid fa-credit-card"></i> Pagado con: ${payLbl}</div>`;
+        }
+      }
+
       if (item.details && item.details.length > 0) {
         html += `<div style="border-top:1px dashed rgba(255,255,255,0.1); padding-top:8px; font-size:0.8rem; color:#cbd5e1;">`;
         item.details.forEach(d => {
@@ -1558,6 +1753,7 @@
         document.getElementById('flight-total-cost').value = item.flightTotalCost || '';
         document.getElementById('flight-fare-cost').value = item.flightFareCost || '';
         document.getElementById('flight-currency').value = item.flightCurrency || 'USD';
+        document.getElementById('flight-payment-method').value = item.paymentMethodId || '';
 
         document.getElementById('modal-flight-form').classList.add('active');
       } else if (item.type === 'hotel') {
@@ -1572,6 +1768,7 @@
         document.getElementById('generic-form-title').innerText = `✏ Editar ${item.type}`;
         document.getElementById('generic-title').value = item.title;
         document.getElementById('generic-sub').value = item.subtitle || '';
+        document.getElementById('generic-payment-method').value = item.paymentMethodId || '';
 
         if (item.timestamp) {
           const dt = new Date(item.timestamp);
@@ -1586,6 +1783,7 @@
     /* GESTIÓN AVANZADA DE HOTELES */
     function openHotelForm(existingItem = null) {
       closeModals();
+      populatePaymentSelectors();
       const formTitle = document.getElementById('hotel-form-modal-title');
       const editIdInput = document.getElementById('edit-hotel-item-id');
       const nameInput = document.getElementById('hotel-name');
@@ -1593,6 +1791,7 @@
       const checkoutInput = document.getElementById('hotel-checkout');
       const costInput = document.getElementById('hotel-cost');
       const currInput = document.getElementById('hotel-currency');
+      const payInput = document.getElementById('hotel-payment-method');
       const addrInput = document.getElementById('hotel-address');
 
       if (existingItem) {
@@ -1621,6 +1820,7 @@
 
         costInput.value = existingItem.hotelCost || '';
         currInput.value = existingItem.hotelCurrency || 'USD';
+        payInput.value = existingItem.paymentMethodId || '';
         addrInput.value = existingItem.hotelAddress || '';
       } else {
         formTitle.innerText = '🏨 Registrar Hotel';
@@ -1630,6 +1830,7 @@
         checkoutInput.value = '';
         costInput.value = '';
         currInput.value = 'USD';
+        payInput.value = '';
         addrInput.value = '';
       }
 
@@ -1644,6 +1845,7 @@
       const checkoutVal = document.getElementById('hotel-checkout').value;
       const costVal = parseFloat(document.getElementById('hotel-cost').value) || 0;
       const currencyVal = document.getElementById('hotel-currency').value;
+      const paymentVal = document.getElementById('hotel-payment-method').value;
       const addressVal = document.getElementById('hotel-address').value.trim();
 
       const checkinDt = new Date(checkinVal);
@@ -1666,6 +1868,10 @@
       if (costVal > 0) {
         detailsCheckin.push(`Costo Total: ${costVal.toFixed(2)} ${currencyVal}`);
         detailsCheckin.push(`Costo por Noche: ${costPerNight} ${currencyVal}/noche`);
+      }
+      if (paymentVal) {
+        const payLbl = getPaymentMethodLabel(paymentVal);
+        if (payLbl) detailsCheckin.push(`Pago: ${payLbl}`);
       }
       if (addressVal) detailsCheckin.push(`Dirección: ${addressVal}`);
 
@@ -1698,6 +1904,7 @@
           details: detailsCheckin,
           hotelCost: costVal,
           hotelCurrency: currencyVal,
+          paymentMethodId: paymentVal,
           hotelAddress: addressVal
         });
 
@@ -1718,6 +1925,7 @@
           details: detailsCheckout,
           hotelCost: costVal,
           hotelCurrency: currencyVal,
+          paymentMethodId: paymentVal,
           hotelAddress: addressVal
         });
 
@@ -1732,6 +1940,7 @@
     /* GESTIÓN AVANZADA DE ALQUILER DE AUTOS */
     function openCarForm(existingItem = null) {
       closeModals();
+      populatePaymentSelectors();
       const formTitle = document.getElementById('car-form-modal-title');
       const editIdInput = document.getElementById('edit-car-item-id');
       const compInput = document.getElementById('car-company');
@@ -1740,6 +1949,7 @@
       const dropoffInput = document.getElementById('car-dropoff');
       const costInput = document.getElementById('car-cost');
       const currInput = document.getElementById('car-currency');
+      const payInput = document.getElementById('car-payment-method');
       const locInput = document.getElementById('car-location');
       const codeInput = document.getElementById('car-code');
 
@@ -1768,6 +1978,7 @@
 
         costInput.value = existingItem.carCost || '';
         currInput.value = existingItem.carCurrency || 'USD';
+        payInput.value = existingItem.paymentMethodId || '';
         locInput.value = existingItem.carLocation || '';
         codeInput.value = existingItem.carCode || '';
       } else {
@@ -1779,6 +1990,7 @@
         dropoffInput.value = '';
         costInput.value = '';
         currInput.value = 'USD';
+        payInput.value = '';
         locInput.value = '';
         codeInput.value = '';
       }
@@ -1795,6 +2007,7 @@
       const dropoffVal = document.getElementById('car-dropoff').value;
       const costVal = parseFloat(document.getElementById('car-cost').value) || 0;
       const currencyVal = document.getElementById('car-currency').value;
+      const paymentVal = document.getElementById('car-payment-method').value;
       const locationVal = document.getElementById('car-location').value.trim();
       const codeVal = document.getElementById('car-code').value.trim();
 
@@ -1816,6 +2029,10 @@
       detailsPickup.push(`Vehículo: ${model}`);
       detailsPickup.push(`Alquiler Total: ${days} ${days === 1 ? 'día' : 'días'}`);
       if (costVal > 0) detailsPickup.push(`Costo Total: ${costVal.toFixed(2)} ${currencyVal}`);
+      if (paymentVal) {
+        const payLbl = getPaymentMethodLabel(paymentVal);
+        if (payLbl) detailsPickup.push(`Pago: ${payLbl}`);
+      }
       if (locationVal) detailsPickup.push(`Oficina / Retiro: ${locationVal}`);
       if (codeVal) detailsPickup.push(`Código Reserva: ${codeVal}`);
 
@@ -1849,6 +2066,7 @@
           details: detailsPickup,
           carCost: costVal,
           carCurrency: currencyVal,
+          paymentMethodId: paymentVal,
           carCompany: company,
           carModel: model,
           carLocation: locationVal,
@@ -1872,6 +2090,7 @@
           details: detailsDropoff,
           carCost: costVal,
           carCurrency: currencyVal,
+          paymentMethodId: paymentVal,
           carCompany: company,
           carModel: model,
           carLocation: locationVal,
@@ -1889,6 +2108,7 @@
     /* GESTIÓN AVANZADA DE RESTAURANTES */
     function openRestaurantForm(existingItem = null) {
       closeModals();
+      populatePaymentSelectors();
       const formTitle = document.getElementById('restaurant-form-modal-title');
       const editIdInput = document.getElementById('edit-restaurant-item-id');
       const nameInput = document.getElementById('restaurant-name');
@@ -1896,6 +2116,7 @@
       const peopleInput = document.getElementById('restaurant-people');
       const costInput = document.getElementById('restaurant-cost');
       const currInput = document.getElementById('restaurant-currency');
+      const payInput = document.getElementById('restaurant-payment-method');
       const addrInput = document.getElementById('restaurant-address');
       const notesInput = document.getElementById('restaurant-notes');
 
@@ -1913,6 +2134,7 @@
         peopleInput.value = existingItem.restaurantPeople || '';
         costInput.value = existingItem.restaurantCost || '';
         currInput.value = existingItem.restaurantCurrency || 'USD';
+        payInput.value = existingItem.paymentMethodId || '';
         addrInput.value = existingItem.restaurantAddress || '';
         notesInput.value = existingItem.restaurantNotes || '';
       } else {
@@ -1923,6 +2145,7 @@
         peopleInput.value = '';
         costInput.value = '';
         currInput.value = 'USD';
+        payInput.value = '';
         addrInput.value = '';
         notesInput.value = '';
       }
@@ -1938,6 +2161,7 @@
       const peopleVal = document.getElementById('restaurant-people').value.trim();
       const costVal = parseFloat(document.getElementById('restaurant-cost').value) || 0;
       const currencyVal = document.getElementById('restaurant-currency').value;
+      const paymentVal = document.getElementById('restaurant-payment-method').value;
       const addressVal = document.getElementById('restaurant-address').value.trim();
       const notesVal = document.getElementById('restaurant-notes').value.trim();
 
@@ -1949,6 +2173,10 @@
       let detailsArr = [];
       if (peopleVal) detailsArr.push(`Mesa / Asistentes: ${peopleVal}`);
       if (costVal > 0) detailsArr.push(`Factura / Presupuesto: ${costVal.toFixed(2)} ${currencyVal}`);
+      if (paymentVal) {
+        const payLbl = getPaymentMethodLabel(paymentVal);
+        if (payLbl) detailsArr.push(`Pago: ${payLbl}`);
+      }
       if (addressVal) detailsArr.push(`Ubicación: ${addressVal}`);
       if (notesVal) detailsArr.push(`Notas: ${notesVal}`);
 
@@ -1967,6 +2195,7 @@
             existingItem.restaurantPeople = peopleVal;
             existingItem.restaurantCost = costVal;
             existingItem.restaurantCurrency = currencyVal;
+            existingItem.paymentMethodId = paymentVal;
             existingItem.restaurantAddress = addressVal;
             existingItem.restaurantNotes = notesVal;
           }
@@ -1986,6 +2215,7 @@
             restaurantPeople: peopleVal,
             restaurantCost: costVal,
             restaurantCurrency: currencyVal,
+            paymentMethodId: paymentVal,
             restaurantAddress: addressVal,
             restaurantNotes: notesVal
           });
@@ -2001,10 +2231,12 @@
 
     function openFlightForm() {
       closeModals();
+      populatePaymentSelectors();
       document.getElementById('edit-item-id').value = '';
       document.getElementById('flight-total-cost').value = '';
       document.getElementById('flight-fare-cost').value = '';
       document.getElementById('flight-currency').value = 'USD';
+      document.getElementById('flight-payment-method').value = '';
       document.getElementById('flight-form-modal-title').innerText = '✈ Registrar Vuelo';
       document.getElementById('modal-flight-form').classList.add('active');
     }
@@ -2025,6 +2257,7 @@
       const totalCostVal = parseFloat(document.getElementById('flight-total-cost').value) || 0;
       const fareCostVal = parseFloat(document.getElementById('flight-fare-cost').value) || 0;
       const currencyVal = document.getElementById('flight-currency').value;
+      const paymentVal = document.getElementById('flight-payment-method').value;
       const taxesVal = Math.max(0, totalCostVal - fareCostVal);
 
       const dt = new Date(datetime);
@@ -2044,6 +2277,10 @@
           costLine += ` (Fare: ${fareCostVal.toFixed(2)} | Impuestos: ${taxesVal.toFixed(2)})`;
         }
         detailsArr.push(costLine);
+      }
+      if (paymentVal) {
+        const payLbl = getPaymentMethodLabel(paymentVal);
+        if (payLbl) detailsArr.push(`Pago: ${payLbl}`);
       }
 
       if (arrDatetime) {
@@ -2068,6 +2305,7 @@
             existingItem.flightFareCost = fareCostVal;
             existingItem.flightTaxesCost = taxesVal;
             existingItem.flightCurrency = currencyVal;
+            existingItem.paymentMethodId = paymentVal;
           }
         } else {
           activeTrip.items.push({
@@ -2084,7 +2322,8 @@
             flightTotalCost: totalCostVal,
             flightFareCost: fareCostVal,
             flightTaxesCost: taxesVal,
-            flightCurrency: currencyVal
+            flightCurrency: currencyVal,
+            paymentMethodId: paymentVal
           });
         }
         saveDataToStorage();
@@ -2920,9 +3159,11 @@
 
     function openGenericForm(type, titleText) {
       closeModals();
+      populatePaymentSelectors();
       document.getElementById('generic-edit-item-id').value = '';
       document.getElementById('generic-item-type').value = type;
       document.getElementById('generic-form-title').innerText = titleText;
+      document.getElementById('generic-payment-method').value = '';
       document.getElementById('modal-generic-form').classList.add('active');
     }
 
@@ -2933,11 +3174,18 @@
       const title = document.getElementById('generic-title').value;
       const datetime = document.getElementById('generic-time').value;
       const sub = document.getElementById('generic-sub').value;
+      const paymentVal = document.getElementById('generic-payment-method').value;
 
       const dt = new Date(datetime);
       const timestamp = dt.getTime();
       const timeStr = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const dayStr = dt.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
+
+      let detailsArr = [];
+      if (paymentVal) {
+        const payLbl = getPaymentMethodLabel(paymentVal);
+        if (payLbl) detailsArr.push(`Pago: ${payLbl}`);
+      }
 
       const activeTrip = trips.find(t => t.id === activeTripId);
       if (activeTrip) {
@@ -2949,6 +3197,8 @@
             existingItem.time = timeStr;
             existingItem.title = title;
             existingItem.subtitle = sub;
+            existingItem.paymentMethodId = paymentVal;
+            existingItem.details = detailsArr;
           }
         } else {
           activeTrip.items.push({
@@ -2961,7 +3211,8 @@
             title: title,
             status: 'Confirmado',
             subtitle: sub,
-            details: []
+            paymentMethodId: paymentVal,
+            details: detailsArr
           });
         }
         saveDataToStorage();
@@ -3039,11 +3290,12 @@
 
       const backupData = {
         app: 'TripMaster Pro',
-        version: '2.0',
+        version: '2.1',
         timestamp: Date.now(),
         dateStr: new Date().toLocaleString('es-ES'),
         trips: trips,
-        packingItems: packingItems
+        packingItems: packingItems,
+        paymentMethods: paymentMethods
       };
 
       const fileContent = JSON.stringify(backupData, null, 2);
@@ -3085,12 +3337,15 @@
           })
           .then(res => res.json())
           .then(backupData => {
-            if (backupData.trips && backupData.packingItems) {
+            if (backupData.trips) {
               trips = backupData.trips;
-              packingItems = backupData.packingItems;
+              if (backupData.packingItems) packingItems = backupData.packingItems;
+              if (backupData.paymentMethods) paymentMethods = backupData.paymentMethods;
+              
               saveDataToStorage();
               renderTrips();
               renderPackingList();
+              renderPaymentMethodsList();
               alert(`✔ Restauración completada: ${trips.length} viaje(s) recuperados.`);
             }
           });
@@ -3135,7 +3390,7 @@
     }
 
     function exportLocalJson() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ trips, packingItems }, null, 2));
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ trips, packingItems, paymentMethods }, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
       downloadAnchor.setAttribute("download", `tripmaster_backup_${Date.now()}.json`);
@@ -3143,7 +3398,6 @@
       downloadAnchor.remove();
     }
 
-    /* FUNCIÓN PARA IMPORTAR ARCHIVO LOCAL .JSON */
     function importLocalJson(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -3154,16 +3408,17 @@
           
           const importedTrips = parsed.trips || parsed.tripsData;
           const importedPacking = parsed.packingItems || parsed.packing;
+          const importedPayments = parsed.paymentMethods || parsed.payments;
 
           if (importedTrips && Array.isArray(importedTrips)) {
             trips = importedTrips;
-            if (importedPacking) {
-              packingItems = importedPacking;
-            }
+            if (importedPacking) packingItems = importedPacking;
+            if (importedPayments) paymentMethods = importedPayments;
             
             saveDataToStorage();
             renderTrips();
             renderPackingList();
+            renderPaymentMethodsList();
             alert('✔ Datos restaurados e importados correctamente.');
           } else {
             alert('El archivo no contiene la estructura correcta de respaldos.');
@@ -3197,7 +3452,6 @@
         navigator.serviceWorker.register('./sw.js').then(reg => {
           console.log('Service Worker registrado con éxito');
 
-          // Forzar comprobación de versión con el servidor al cargar
           reg.update();
 
           if (reg.waiting) {
