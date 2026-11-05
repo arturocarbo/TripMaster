@@ -52,7 +52,7 @@
     /* Encabezado */
     .app-header {
       padding: 16px; display: flex; justify-content: space-between; align-items: center;
-      background-color: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 60; border-bottom: 1px solid var(--card-border);
+      background-color: rgba(15, 23, 42, 0.98); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--card-border);
     }
     .header-title { font-size: 1.2rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; }
     .header-actions { display: flex; gap: 10px; }
@@ -62,19 +62,24 @@
     /* Menús Desplegables */
     .dropdown-menu {
       position: absolute; top: 50px; right: 16px; background: #1e293b; border: 1px solid var(--card-border);
-      border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: none !important; flex-direction: column; z-index: 100; min-width: 220px; overflow: hidden;
+      border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: none !important; flex-direction: column; z-index: 200; min-width: 220px; overflow: hidden;
     }
     .dropdown-menu.active { display: flex !important; }
     .dropdown-item { padding: 12px 16px; font-size: 0.85rem; color: #fff; background: none; border: none; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 10px; width: 100%; }
     .dropdown-item:hover { background: rgba(255,255,255,0.05); }
     .dropdown-item.danger { color: #ef4444; }
 
-    /* Búsqueda y Filtros */
+    /* Búsqueda y Filtros Fijos */
+    .sticky-filter-wrapper {
+      position: sticky;
+      top: 57px;
+      z-index: 90;
+      background-color: var(--bg-main);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
     .search-box { 
       padding: 12px 16px 4px 16px; 
-      background-color: var(--bg-main); 
       position: relative; 
-      z-index: 50; 
     }
     .search-input-wrapper { position: relative; width: 100%; }
     .search-input-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem; }
@@ -82,16 +87,26 @@
     
     .filter-pills-bar { 
       display: flex; 
+      align-items: center;
       gap: 8px; 
       padding: 8px 16px 12px 16px; 
       overflow-x: auto; 
-      background-color: var(--bg-main); 
-      position: relative; 
-      z-index: 50; 
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
     .pill-btn { background: #1e293b; border: 1px solid var(--card-border); color: var(--text-muted); padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
     .pill-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    .year-select-pill {
+      background: #1e293b;
+      border: 1px solid var(--primary);
+      color: #38bdf8;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      outline: none;
+      cursor: pointer;
+    }
 
     /* Tarjetas de Viaje */
     .trips-list { 
@@ -181,7 +196,7 @@
     }
     .bottom-nav {
       position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background-color: #0f172a;
-      border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-around; align-items: center; z-index: 80;
+      border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-around; align-items: center; z-index: 100;
     }
     .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--text-muted); font-size: 0.65rem; cursor: pointer; border: none; background: none; width: 20%; position: relative; }
     .nav-item i { font-size: 1.1rem; }
@@ -235,17 +250,23 @@
         </div>
       </div>
 
-      <div class="search-box">
-        <div class="search-input-wrapper">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="text" id="trip-search-input" onkeyup="filterTripsList()" placeholder="Buscar itinerarios, destinos...">
+      <!-- CONTENEDOR FIJO DE BÚSQUEDA Y FILTROS -->
+      <div class="sticky-filter-wrapper">
+        <div class="search-box">
+          <div class="search-input-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="trip-search-input" onkeyup="filterTripsList()" placeholder="Buscar itinerarios, destinos...">
+          </div>
         </div>
-      </div>
 
-      <div class="filter-pills-bar">
-        <button class="pill-btn active" id="pill-trip-all" onclick="setTripTimeFilter('all')">Todos</button>
-        <button class="pill-btn" id="pill-trip-upcoming" onclick="setTripTimeFilter('upcoming')">Próximos</button>
-        <button class="pill-btn" id="pill-trip-past" onclick="setTripTimeFilter('past')">Pasados</button>
+        <div class="filter-pills-bar">
+          <button class="pill-btn active" id="pill-trip-all" onclick="setTripTimeFilter('all')">Todos</button>
+          <button class="pill-btn" id="pill-trip-upcoming" onclick="setTripTimeFilter('upcoming')">Próximos</button>
+          <button class="pill-btn" id="pill-trip-past" onclick="setTripTimeFilter('past')">Pasados</button>
+          <select id="trip-year-select" class="year-select-pill" onchange="filterTripsList()">
+            <option value="all">📅 Año: Todos</option>
+          </select>
+        </div>
       </div>
 
       <div class="trips-list" id="trips-container"></div>
@@ -355,15 +376,24 @@
         <div id="air-flights-list"></div>
       </div>
 
-      <!-- SECCIÓN MULTI-ESTADÍSTICAS -->
+      <!-- SECCIÓN MULTI-ESTADÍSTICAS CON FILTRO POR AÑO -->
       <div class="flight-subview" id="subview-stats">
-        <div class="form-group" style="margin-bottom: 12px;">
-          <label style="color:#38bdf8; font-weight:700;"><i class="fa-solid fa-chart-line"></i> Seleccionar Categoría de Estadísticas:</label>
-          <select id="stats-category-select" onchange="renderSelectedCategoryStats()" style="background:#1e293b; border:1px solid #0084ff; font-weight:700; color:#fff; padding:10px; border-radius:10px;">
-            <option value="trips">📊 Estadísticas de Viajes</option>
-            <option value="flights">✈ Estadísticas de Vuelos</option>
-            <option value="hotels">🏨 Estadísticas de Hoteles</option>
-          </select>
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:8px; margin-bottom:12px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="color:#38bdf8; font-weight:700;"><i class="fa-solid fa-chart-line"></i> Categoría:</label>
+            <select id="stats-category-select" onchange="renderSelectedCategoryStats()" style="background:#1e293b; border:1px solid #0084ff; font-weight:700; color:#fff; padding:8px; border-radius:10px;">
+              <option value="trips">📊 Estadísticas de Viajes</option>
+              <option value="flights">✈ Estadísticas de Vuelos</option>
+              <option value="hotels">🏨 Estadísticas de Hoteles</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="color:#ffb703; font-weight:700;"><i class="fa-solid fa-calendar"></i> Año:</label>
+            <select id="stats-year-select" onchange="renderSelectedCategoryStats()" style="background:#1e293b; border:1px solid #ffb703; font-weight:700; color:#fff; padding:8px; border-radius:10px;">
+              <option value="all">Todos</option>
+            </select>
+          </div>
         </div>
 
         <!-- PANEL 1: ESTADÍSTICAS DE VIAJES -->
@@ -514,7 +544,7 @@
       </div>
     </div>
 
-    <!-- SCREEN 4: ACCOUNT (CON MÉTODOS DE PAGO) -->
+    <!-- SCREEN 4: ACCOUNT -->
     <div id="screen-account" class="screen">
       <div class="app-header">
         <div class="header-title"><i class="fa-solid fa-user-gear" style="color:#38bdf8;"></i> Cuenta & Respaldos</div>
@@ -1160,6 +1190,7 @@
         localStorage.setItem('tripmaster_trips', JSON.stringify(trips));
         localStorage.setItem('tripmaster_packing', JSON.stringify(packingItems));
         localStorage.setItem('tripmaster_payments', JSON.stringify(paymentMethods));
+        populateYearDropdowns();
         checkAndPerformAutoBackup();
       } catch (e) { console.error("Error guardando datos:", e); }
     }
@@ -1183,8 +1214,47 @@
 
         updateLastBackupDisplay();
         renderPaymentMethodsList();
+        populateYearDropdowns();
       } catch (e) {
         trips = INITIAL_TRIPS; packingItems = INITIAL_PACKING_ITEMS; paymentMethods = DEFAULT_PAYMENT_METHODS;
+      }
+    }
+
+    /* CARGAR AÑOS EN LOS DROPDOWNS DE FILTRADO */
+    function populateYearDropdowns() {
+      const yearsSet = new Set();
+      trips.forEach(trip => {
+        const d = getTripStartDate(trip);
+        if (d && d.getFullYear() && d.getFullYear() > 1990) {
+          yearsSet.add(d.getFullYear());
+        }
+      });
+
+      const sortedYears = Array.from(yearsSet).sort((a, b) => b - a);
+
+      const tripSelect = document.getElementById('trip-year-select');
+      const statsSelect = document.getElementById('stats-year-select');
+
+      if (tripSelect) {
+        const currTripVal = tripSelect.value;
+        tripSelect.innerHTML = `<option value="all">📅 Año: Todos</option>`;
+        sortedYears.forEach(y => {
+          tripSelect.innerHTML += `<option value="${y}">📅 ${y}</option>`;
+        });
+        if (currTripVal && Array.from(tripSelect.options).some(o => o.value === currTripVal)) {
+          tripSelect.value = currTripVal;
+        }
+      }
+
+      if (statsSelect) {
+        const currStatsVal = statsSelect.value;
+        statsSelect.innerHTML = `<option value="all">Todos</option>`;
+        sortedYears.forEach(y => {
+          statsSelect.innerHTML += `<option value="${y}">${y}</option>`;
+        });
+        if (currStatsVal && Array.from(statsSelect.options).some(o => o.value === currStatsVal)) {
+          statsSelect.value = currStatsVal;
+        }
       }
     }
 
@@ -1512,19 +1582,25 @@
       const container = document.getElementById('trips-container');
       container.innerHTML = '';
       const now = new Date();
+      const selectedYear = document.getElementById('trip-year-select')?.value || 'all';
 
       const filtered = trips.filter(trip => {
         const matchesText = trip.title.toLowerCase().includes(filterQuery) || trip.dates.toLowerCase().includes(filterQuery);
         if (!matchesText) return false;
 
         const startDate = getTripStartDate(trip);
-        if (currentTripTimeFilter === 'upcoming') return startDate >= now;
-        if (currentTripTimeFilter === 'past') return startDate < now;
+        if (currentTripTimeFilter === 'upcoming' && startDate < now) return false;
+        if (currentTripTimeFilter === 'past' && startDate >= now) return false;
+
+        if (selectedYear !== 'all') {
+          if (startDate.getFullYear().toString() !== selectedYear) return false;
+        }
+
         return true;
       });
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8;">No se encontraron viajes en esta categoría.</div>`;
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8;">No se encontraron viajes en esta categoría o año.</div>`;
         return;
       }
 
@@ -2564,7 +2640,16 @@
       }
     }
 
-    /* SISTEMA CONTROLADOR DE MÚLTIPLES ESTADÍSTICAS */
+    /* SISTEMA CONTROLADOR DE MÚLTIPLES ESTADÍSTICAS CON FILTRADO POR AÑO */
+    function getFilteredTripsForStats() {
+      const selectedYear = document.getElementById('stats-year-select')?.value || 'all';
+      if (selectedYear === 'all') return trips;
+      return trips.filter(t => {
+        const d = getTripStartDate(t);
+        return d && d.getFullYear().toString() === selectedYear;
+      });
+    }
+
     function renderSelectedCategoryStats() {
       const selectedCat = document.getElementById('stats-category-select').value;
       
@@ -2588,8 +2673,9 @@
       let totalTripDays = 0;
       let totalTripExpenses = 0;
       let countryCounts = {};
+      const activeStatsTrips = getFilteredTripsForStats();
 
-      trips.forEach(t => {
+      activeStatsTrips.forEach(t => {
         let items = (t.items || []).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
         if (items.length > 0) {
           const firstTime = items[0].timestamp || 0;
@@ -2615,7 +2701,7 @@
         });
       });
 
-      const totalTripsCount = trips.length;
+      const totalTripsCount = activeStatsTrips.length;
       const avgDays = totalTripsCount > 0 ? (totalTripDays / totalTripsCount).toFixed(1) : 0;
 
       document.getElementById('trip-stat-days').innerText = totalTripDays;
@@ -2642,8 +2728,9 @@
       let totalCost = 0;
       let nightsWithCostCount = 0;
       let hotelBrandCounts = {};
+      const activeStatsTrips = getFilteredTripsForStats();
 
-      trips.forEach(t => {
+      activeStatsTrips.forEach(t => {
         (t.items || []).forEach(i => {
           if (i.type === 'hotel' && i.status === 'Entrada') {
             let nights = 1;
@@ -2699,7 +2786,9 @@
       let airlineCounts = {};
       let airlineSpending = {};
 
-      for (let t of trips) {
+      const activeStatsTrips = getFilteredTripsForStats();
+
+      for (let t of activeStatsTrips) {
         for (let i of t.items) {
           if (i.type === 'flight') {
             totalFlightsCount++;
@@ -3310,7 +3399,7 @@
 
       const backupData = {
         app: 'TripMaster Pro',
-        version: '2.1',
+        version: '2.2',
         timestamp: Date.now(),
         dateStr: new Date().toLocaleString('es-ES'),
         trips: trips,
