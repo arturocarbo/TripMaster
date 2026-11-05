@@ -626,9 +626,9 @@
         <div class="options-grid">
           <button class="option-btn" onclick="openFlightForm()"><i class="fa-solid fa-plane" style="color:#0084ff; font-size: 1.5rem;"></i><span>Agregar Vuelo</span></button>
           <button class="option-btn" onclick="openHotelForm()"><i class="fa-solid fa-hotel" style="color:#8b5cf6; font-size: 1.5rem;"></i><span>Hotel</span></button>
-          <button class="option-btn" onclick="openGenericForm('car', 'Alquiler de Auto')"><i class="fa-solid fa-car" style="color:#f59e0b; font-size: 1.5rem;"></i><span>Auto</span></button>
-          <button class="option-btn" onclick="openGenericForm('restaurant', 'Reserva Restaurante')"><i class="fa-solid fa-utensils" style="color:#ec4899; font-size: 1.5rem;"></i><span>Restaurante</span></button>
-          <button class="option-btn" onclick="openGenericForm('activity', 'Agregar Actividad')"><i class="fa-solid fa-calendar-check" style="color:#10b981; font-size: 1.5rem;"></i><span>Actividad / Reunión</span></button>
+          <button class="option-btn" onclick="openCarForm()"><i class="fa-solid fa-car" style="color:#f59e0b; font-size: 1.5rem;"></i><span>Alquiler de Auto</span></button>
+          <button class="option-btn" onclick="openRestaurantForm()"><i class="fa-solid fa-utensils" style="color:#ec4899; font-size: 1.5rem;"></i><span>Restaurante</span></button>
+          <button class="option-btn" onclick="openGenericForm('activity', 'Agregar Actividad')" style="grid-column: span 2;"><i class="fa-solid fa-calendar-check" style="color:#10b981; font-size: 1.5rem;"></i><span>Actividad / Reunión</span></button>
         </div>
       </div>
     </div>
@@ -683,6 +683,130 @@
           </div>
 
           <button type="submit" class="btn-submit" id="btn-save-hotel">Guardar Reserva de Hotel</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL FORMULARIO DE ALQUILER DE AUTO (NUEVO Y COMPLETO) -->
+    <div class="modal-overlay" id="modal-car-form">
+      <div class="action-sheet">
+        <div class="sheet-header">
+          <div class="sheet-title" id="car-form-modal-title">🚗 Alquiler de Vehículo</div>
+          <button class="sheet-close" onclick="closeModals()">&times;</button>
+        </div>
+
+        <form onsubmit="saveAdvancedCar(event)">
+          <input type="hidden" id="edit-car-item-id">
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+            <div class="form-group">
+              <label>Compañía / Arrendadora</label>
+              <input type="text" id="car-company" placeholder="Ej. Hertz, Avis, Enterprise" required>
+            </div>
+            <div class="form-group">
+              <label>Modelo / Categoría</label>
+              <input type="text" id="car-model" placeholder="Ej. Toyota RAV4 (SUV)" required>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+            <div class="form-group">
+              <label>Fecha & Hora de Retiro (Pick-up)</label>
+              <input type="datetime-local" id="car-pickup" required>
+            </div>
+            <div class="form-group">
+              <label>Fecha & Hora Devolución (Drop-off)</label>
+              <input type="datetime-local" id="car-dropoff" required>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 2fr 1fr; gap:8px;">
+            <div class="form-group">
+              <label>Costo Total del Alquiler</label>
+              <input type="number" step="0.01" id="car-cost" placeholder="Ej. 280.00">
+            </div>
+            <div class="form-group">
+              <label>Moneda</label>
+              <select id="car-currency">
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="MXN">MXN ($)</option>
+                <option value="ARS">ARS ($)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Lugar de Entrega / Oficina</label>
+            <input type="text" id="car-location" placeholder="Ej. Aeropuerto de Guayaquil (GYE) / Terminal 2">
+          </div>
+
+          <div class="form-group">
+            <label>Código de Confirmación / PNR (Opcional)</label>
+            <input type="text" id="car-code" placeholder="Ej. HZ-99812A">
+          </div>
+
+          <button type="submit" class="btn-submit" id="btn-save-car">Guardar Alquiler de Auto</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL FORMULARIO DE RESTAURANTE (NUEVO Y COMPLETO) -->
+    <div class="modal-overlay" id="modal-restaurant-form">
+      <div class="action-sheet">
+        <div class="sheet-header">
+          <div class="sheet-title" id="restaurant-form-modal-title">🍽 Reserva & Factura de Restaurante</div>
+          <button class="sheet-close" onclick="closeModals()">&times;</button>
+        </div>
+
+        <form onsubmit="saveAdvancedRestaurant(event)">
+          <input type="hidden" id="edit-restaurant-item-id">
+
+          <div class="form-group">
+            <label>Nombre del Restaurante / Establecimiento</label>
+            <input type="text" id="restaurant-name" placeholder="Ej. Central Restaurante / La Trattoria" required>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+            <div class="form-group">
+              <label>Fecha & Hora de Reserva</label>
+              <input type="datetime-local" id="restaurant-time" required>
+            </div>
+            <div class="form-group">
+              <label>Personas / Mesa</label>
+              <input type="text" id="restaurant-people" placeholder="Ej. Mesa para 4 personas">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 2fr 1fr; gap:8px;">
+            <div class="form-group">
+              <label>Costo de Factura / Presupuesto</label>
+              <input type="number" step="0.01" id="restaurant-cost" placeholder="Ej. 120.00">
+            </div>
+            <div class="form-group">
+              <label>Moneda</label>
+              <select id="restaurant-currency">
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="MXN">MXN ($)</option>
+                <option value="ARS">ARS ($)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Ubicación / Dirección</label>
+            <input type="text" id="restaurant-address" placeholder="Ej. Malecón 2000, Zona Rosa">
+          </div>
+
+          <div class="form-group">
+            <label>Código de Confirmación / Notas</label>
+            <input type="text" id="restaurant-notes" placeholder="Ej. Confirmación #441, Código de vestimenta informal">
+          </div>
+
+          <button type="submit" class="btn-submit" id="btn-save-restaurant">Guardar Reserva de Restaurante</button>
         </form>
       </div>
     </div>
@@ -780,7 +904,7 @@
         <form onsubmit="saveGenericItem(event)">
           <input type="hidden" id="generic-edit-item-id">
           <input type="hidden" id="generic-item-type">
-          <div class="form-group"><label>Nombre / Proveedor / Título</label><input type="text" id="generic-title" placeholder="Ej. Reunión / Hotel Arts" required></div>
+          <div class="form-group"><label>Nombre / Proveedor / Título</label><input type="text" id="generic-title" placeholder="Ej. Reunión / Excursión" required></div>
           <div class="form-group"><label>Fecha y Hora</label><input type="datetime-local" id="generic-time" required></div>
           <div class="form-group"><label>Ubicación / Detalles</label><input type="text" id="generic-sub" placeholder="Ej. Dirección"></div>
           <button type="submit" class="btn-submit" id="btn-save-generic">Añadir al Itinerario</button>
@@ -1222,7 +1346,7 @@
       const trip = trips.find(t => t.id === activeTripId);
       if (!trip) return;
 
-      // CÁLCULO DINÁMICO DE GASTOS TOTALES DEL VIAJE
+      // CÁLCULO DINÁMICO DE GASTOS TOTALES DEL VIAJE (INCLUYE VUELOS, HOTELES, AUTOS Y RESTAURANTES)
       let totalTripCost = 0;
       let primaryCurrency = 'USD';
 
@@ -1234,6 +1358,12 @@
           } else if (item.type === 'hotel' && item.hotelCost && item.status === 'Entrada') {
             totalTripCost += parseFloat(item.hotelCost) || 0;
             if (item.hotelCurrency) primaryCurrency = item.hotelCurrency;
+          } else if (item.type === 'car' && item.carCost && item.status === 'Retiro') {
+            totalTripCost += parseFloat(item.carCost) || 0;
+            if (item.carCurrency) primaryCurrency = item.carCurrency;
+          } else if (item.type === 'food' && item.restaurantCost) {
+            totalTripCost += parseFloat(item.restaurantCost) || 0;
+            if (item.restaurantCurrency) primaryCurrency = item.restaurantCurrency;
           }
         });
       }
@@ -1363,6 +1493,8 @@
         const item = trip.items.find(i => i.id === activeSelectedItemId);
         if (item && item.hotelGroupId) {
           trip.items = trip.items.filter(i => i.hotelGroupId !== item.hotelGroupId);
+        } else if (item && item.carGroupId) {
+          trip.items = trip.items.filter(i => i.carGroupId !== item.carGroupId);
         } else {
           trip.items = trip.items.filter(i => i.id !== activeSelectedItemId);
         }
@@ -1416,6 +1548,10 @@
         document.getElementById('modal-flight-form').classList.add('active');
       } else if (item.type === 'hotel') {
         openHotelForm(item);
+      } else if (item.type === 'car') {
+        openCarForm(item);
+      } else if (item.type === 'food') {
+        openRestaurantForm(item);
       } else {
         document.getElementById('generic-edit-item-id').value = item.id;
         document.getElementById('generic-item-type').value = item.type;
@@ -1579,6 +1715,276 @@
       e.target.reset();
     }
 
+    /* GESTIÓN AVANZADA DE ALQUILER DE AUTOS (NUEVO) */
+    function openCarForm(existingItem = null) {
+      closeModals();
+      const formTitle = document.getElementById('car-form-modal-title');
+      const editIdInput = document.getElementById('edit-car-item-id');
+      const compInput = document.getElementById('car-company');
+      const modelInput = document.getElementById('car-model');
+      const pickupInput = document.getElementById('car-pickup');
+      const dropoffInput = document.getElementById('car-dropoff');
+      const costInput = document.getElementById('car-cost');
+      const currInput = document.getElementById('car-currency');
+      const locInput = document.getElementById('car-location');
+      const codeInput = document.getElementById('car-code');
+
+      if (existingItem) {
+        formTitle.innerText = '✏ Editar Alquiler de Auto';
+        editIdInput.value = existingItem.carGroupId || existingItem.id;
+
+        compInput.value = existingItem.carCompany || '';
+        modelInput.value = existingItem.carModel || '';
+
+        if (existingItem.carPickupTimestamp) {
+          const dt = new Date(existingItem.carPickupTimestamp);
+          pickupInput.value = new Date(dt.getTime() - (dt.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+        } else if (existingItem.timestamp) {
+          const dt = new Date(existingItem.timestamp);
+          pickupInput.value = new Date(dt.getTime() - (dt.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+        }
+
+        if (existingItem.carDropoffTimestamp) {
+          const dt = new Date(existingItem.carDropoffTimestamp);
+          dropoffInput.value = new Date(dt.getTime() - (dt.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+        } else if (existingItem.arrTimestamp) {
+          const dt = new Date(existingItem.arrTimestamp);
+          dropoffInput.value = new Date(dt.getTime() - (dt.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+        }
+
+        costInput.value = existingItem.carCost || '';
+        currInput.value = existingItem.carCurrency || 'USD';
+        locInput.value = existingItem.carLocation || '';
+        codeInput.value = existingItem.carCode || '';
+      } else {
+        formTitle.innerText = '🚗 Alquiler de Vehículo';
+        editIdInput.value = '';
+        compInput.value = '';
+        modelInput.value = '';
+        pickupInput.value = '';
+        dropoffInput.value = '';
+        costInput.value = '';
+        currInput.value = 'USD';
+        locInput.value = '';
+        codeInput.value = '';
+      }
+
+      document.getElementById('modal-car-form').classList.add('active');
+    }
+
+    function saveAdvancedCar(e) {
+      e.preventDefault();
+      const editGroupId = document.getElementById('edit-car-item-id').value;
+      const company = document.getElementById('car-company').value.trim();
+      const model = document.getElementById('car-model').value.trim();
+      const pickupVal = document.getElementById('car-pickup').value;
+      const dropoffVal = document.getElementById('car-dropoff').value;
+      const costVal = parseFloat(document.getElementById('car-cost').value) || 0;
+      const currencyVal = document.getElementById('car-currency').value;
+      const locationVal = document.getElementById('car-location').value.trim();
+      const codeVal = document.getElementById('car-code').value.trim();
+
+      const pickupDt = new Date(pickupVal);
+      const dropoffDt = new Date(dropoffVal);
+      const pickupTimestamp = pickupDt.getTime();
+      const dropoffTimestamp = dropoffDt.getTime();
+
+      const diffMs = dropoffTimestamp - pickupTimestamp;
+      const days = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+
+      const pickupTimeStr = pickupDt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const pickupDayStr = pickupDt.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
+
+      const dropoffTimeStr = dropoffDt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const dropoffDayStr = dropoffDt.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
+
+      let detailsPickup = [];
+      detailsPickup.push(`Vehículo: ${model}`);
+      detailsPickup.push(`Alquiler Total: ${days} ${days === 1 ? 'día' : 'días'}`);
+      if (costVal > 0) detailsPickup.push(`Costo Total: ${costVal.toFixed(2)} ${currencyVal}`);
+      if (locationVal) detailsPickup.push(`Oficina / Retiro: ${locationVal}`);
+      if (codeVal) detailsPickup.push(`Código Reserva: ${codeVal}`);
+
+      let detailsDropoff = [];
+      detailsDropoff.push(`Vehículo: ${model}`);
+      detailsDropoff.push(`Devolución tras ${days} ${days === 1 ? 'día' : 'días'}`);
+      if (locationVal) detailsDropoff.push(`Oficina Devolución: ${locationVal}`);
+
+      const groupId = editGroupId || ('car-group-' + Date.now());
+
+      const activeTrip = trips.find(t => t.id === activeTripId);
+      if (activeTrip) {
+        if (editGroupId) {
+          activeTrip.items = activeTrip.items.filter(i => i.carGroupId !== editGroupId && i.id !== editGroupId);
+        }
+
+        activeTrip.items.push({
+          id: groupId + '-pickup',
+          carGroupId: groupId,
+          timestamp: pickupTimestamp,
+          arrTimestamp: dropoffTimestamp,
+          carPickupTimestamp: pickupTimestamp,
+          carDropoffTimestamp: dropoffTimestamp,
+          dayLabel: pickupDayStr,
+          time: pickupTimeStr,
+          tz: 'LOCAL',
+          type: 'car',
+          title: `Retiro: ${company}`,
+          status: 'Retiro',
+          subtitle: `${model} (${days} ${days === 1 ? 'día' : 'días'})`,
+          details: detailsPickup,
+          carCost: costVal,
+          carCurrency: currencyVal,
+          carCompany: company,
+          carModel: model,
+          carLocation: locationVal,
+          carCode: codeVal
+        });
+
+        activeTrip.items.push({
+          id: groupId + '-dropoff',
+          carGroupId: groupId,
+          timestamp: dropoffTimestamp,
+          arrTimestamp: dropoffTimestamp,
+          carPickupTimestamp: pickupTimestamp,
+          carDropoffTimestamp: dropoffTimestamp,
+          dayLabel: dropoffDayStr,
+          time: dropoffTimeStr,
+          tz: 'LOCAL',
+          type: 'car',
+          title: `Devolución: ${company}`,
+          status: 'Devolución',
+          subtitle: `Entrega de ${model}`,
+          details: detailsDropoff,
+          carCost: costVal,
+          carCurrency: currencyVal,
+          carCompany: company,
+          carModel: model,
+          carLocation: locationVal,
+          carCode: codeVal
+        });
+
+        saveDataToStorage();
+        renderTimeline();
+      }
+
+      closeModals();
+      e.target.reset();
+    }
+
+    /* GESTIÓN AVANZADA DE RESTAURANTES (NUEVO) */
+    function openRestaurantForm(existingItem = null) {
+      closeModals();
+      const formTitle = document.getElementById('restaurant-form-modal-title');
+      const editIdInput = document.getElementById('edit-restaurant-item-id');
+      const nameInput = document.getElementById('restaurant-name');
+      const timeInput = document.getElementById('restaurant-time');
+      const peopleInput = document.getElementById('restaurant-people');
+      const costInput = document.getElementById('restaurant-cost');
+      const currInput = document.getElementById('restaurant-currency');
+      const addrInput = document.getElementById('restaurant-address');
+      const notesInput = document.getElementById('restaurant-notes');
+
+      if (existingItem) {
+        formTitle.innerText = '✏ Editar Reserva / Factura de Restaurante';
+        editIdInput.value = existingItem.id;
+
+        nameInput.value = existingItem.restaurantName || existingItem.title || '';
+        
+        if (existingItem.timestamp) {
+          const dt = new Date(existingItem.timestamp);
+          timeInput.value = new Date(dt.getTime() - (dt.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+        }
+
+        peopleInput.value = existingItem.restaurantPeople || '';
+        costInput.value = existingItem.restaurantCost || '';
+        currInput.value = existingItem.restaurantCurrency || 'USD';
+        addrInput.value = existingItem.restaurantAddress || '';
+        notesInput.value = existingItem.restaurantNotes || '';
+      } else {
+        formTitle.innerText = '🍽 Reserva & Factura de Restaurante';
+        editIdInput.value = '';
+        nameInput.value = '';
+        timeInput.value = '';
+        peopleInput.value = '';
+        costInput.value = '';
+        currInput.value = 'USD';
+        addrInput.value = '';
+        notesInput.value = '';
+      }
+
+      document.getElementById('modal-restaurant-form').classList.add('active');
+    }
+
+    function saveAdvancedRestaurant(e) {
+      e.preventDefault();
+      const editItemId = document.getElementById('edit-restaurant-item-id').value;
+      const name = document.getElementById('restaurant-name').value.trim();
+      const timeVal = document.getElementById('restaurant-time').value;
+      const peopleVal = document.getElementById('restaurant-people').value.trim();
+      const costVal = parseFloat(document.getElementById('restaurant-cost').value) || 0;
+      const currencyVal = document.getElementById('restaurant-currency').value;
+      const addressVal = document.getElementById('restaurant-address').value.trim();
+      const notesVal = document.getElementById('restaurant-notes').value.trim();
+
+      const dt = new Date(timeVal);
+      const timestamp = dt.getTime();
+      const timeStr = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const dayStr = dt.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
+
+      let detailsArr = [];
+      if (peopleVal) detailsArr.push(`Mesa / Asistentes: ${peopleVal}`);
+      if (costVal > 0) detailsArr.push(`Factura / Presupuesto: ${costVal.toFixed(2)} ${currencyVal}`);
+      if (addressVal) detailsArr.push(`Ubicación: ${addressVal}`);
+      if (notesVal) detailsArr.push(`Notas: ${notesVal}`);
+
+      const activeTrip = trips.find(t => t.id === activeTripId);
+      if (activeTrip) {
+        if (editItemId) {
+          const existingItem = activeTrip.items.find(i => i.id === editItemId);
+          if (existingItem) {
+            existingItem.timestamp = timestamp;
+            existingItem.dayLabel = dayStr;
+            existingItem.time = timeStr;
+            existingItem.title = name;
+            existingItem.subtitle = peopleVal || 'Reserva Gastronómica';
+            existingItem.details = detailsArr;
+            existingItem.restaurantName = name;
+            existingItem.restaurantPeople = peopleVal;
+            existingItem.restaurantCost = costVal;
+            existingItem.restaurantCurrency = currencyVal;
+            existingItem.restaurantAddress = addressVal;
+            existingItem.restaurantNotes = notesVal;
+          }
+        } else {
+          activeTrip.items.push({
+            id: 'item-' + Date.now(),
+            timestamp: timestamp,
+            dayLabel: dayStr,
+            time: timeStr,
+            tz: 'LOCAL',
+            type: 'food',
+            title: name,
+            status: 'Confirmado',
+            subtitle: peopleVal || 'Reserva Gastronómica',
+            details: detailsArr,
+            restaurantName: name,
+            restaurantPeople: peopleVal,
+            restaurantCost: costVal,
+            restaurantCurrency: currencyVal,
+            restaurantAddress: addressVal,
+            restaurantNotes: notesVal
+          });
+        }
+
+        saveDataToStorage();
+        renderTimeline();
+      }
+
+      closeModals();
+      e.target.reset();
+    }
+
     function openFlightForm() {
       closeModals();
       document.getElementById('edit-item-id').value = '';
@@ -1658,7 +2064,6 @@
             time: timeStr,
             tz: 'LOCAL',
             type: 'flight',
-            title: `${origin} – ${dest}`,
             status: 'Programado',
             subtitle: `${flightNo} (${airline})`,
             details: detailsArr,
